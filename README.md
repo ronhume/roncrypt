@@ -1,1 +1,1 @@
-# 3des
+# Triple DES implemention
