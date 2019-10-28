@@ -45,7 +45,7 @@ static const uint8_t pc2_table[] = {
     46, 35, 50, 41, 28, 53,
     51, 55, 32, 45, 39, 42 };
 
-static const uint8_t p_table[] = { 
+static const uint8_t permutation_table[] = { 
      7, 28, 21, 10, 26,  2, 19, 13,
     23, 29,  5,  0, 18,  8, 24, 30,
     22,  1, 14, 27,  6,  9, 17, 31,
