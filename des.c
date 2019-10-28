@@ -90,81 +90,75 @@ void do_sbox(uint64_t input, uint64_t *output)
     *output >>=4;
 }
 
-void des_encrypt_block (uint64_t input, 
-                  uint64_t *output,
-                  uint64_t cbc_iv,
-                  uint64_t key )
+/* 
+ * Generate DES subkeys
+ * Paramters: key
+ *            subkeys array (out param)
+ *
+ * Return: void
+ */
+void generate_subkeys ( uint64_t key, uint64_t subkey[] )
 {
-    uint64_t ip_block;
-    uint64_t expansion_block;
-    uint64_t substitution_block;
-    uint64_t pbox_target;
-    uint64_t recomb_box;
     uint64_t pc1key;
     uint64_t pc1key_left;
     uint64_t pc1key_right;
-    uint64_t subkey;
 
-    unsigned int round;
-
-    printf ( "IV: 0x%" PRIx64 "\n", cbc_iv);
-    printf ( "INPUT: 0x%" PRIx64 "\n", input);
-    input ^= cbc_iv;
-    printf ( "INPUT_IV: 0x%" PRIx64 "\n", input);
-    permutation(input, &ip_block, initial_permutation_table, 64);
-    printf ( "PERMUTED(IP): 0x%" PRIx64 "\n", ip_block);
-
-    printf ( "KEY: 0x%" PRIx64 "\n", key);
     permutation(key, &pc1key_left, pc1_table_left, 28);
-    //printf ( "PC1 LEFT : 0x%" PRIx64 "\n", pc1key_left);
     permutation(key, &pc1key_right, pc1_table_right, 28);
-    //printf ( "PC1 RIGHT: 0x%" PRIx64 "\n", pc1key_right);
+
     pc1key = (pc1key_left << 28) | pc1key_right;
-    printf ( "PC1 KEY: 0x%" PRIx64 "\n", pc1key);
-    
-    for ( int round = 0; round < 16; round++)
+
+    for ( unsigned int round = 0; round < 16; round++ )
     {
-        printf ("ROUND [%d]\n", round);
-
-        uint64_t in_block = ip_block&0x00000000FFFFFFFF;
-        //printf ( "LOWER INPUT: 0x%" PRIx64 "\n", in_block);
-        permutation(in_block, &expansion_block, expansion_table, 48);
-        printf ( "EXPANSION : 0x%" PRIx64 "\n", expansion_block);
-        
         rol_28_key(&pc1key_left, &pc1key_right, &pc1key);
-        //printf ( "PC1 LEFT : 0x%" PRIx64 "\n", pc1key_left);
-        //printf ( "PC1 RIGHT: 0x%" PRIx64 "\n", pc1key_right);
-        printf ( "PC1 KEY: 0x%" PRIx64 "\n", pc1key);
-        if ( !(round == 0 || round == 1 || round ==8 || round == 15))
-        {
-            rol_28_key(&pc1key_left, &pc1key_right, &pc1key);
-            printf ( "PC1 KEY: 0x%" PRIx64 "\n", pc1key);
-        }
 
-        permutation(pc1key, &subkey, pc2_table, 48);
-        printf ( "SUBKEY : 0x%" PRIx64 "\n", subkey);
-        expansion_block ^= subkey;
-        printf ( "EXPANSION(XOR) : 0x%" PRIx64 "\n", expansion_block);
+        if ( !(round == 0 || round == 1 || round ==8 || round == 15))
+            rol_28_key(&pc1key_left, &pc1key_right, &pc1key);
+
+        permutation(pc1key, &subkey[round], pc2_table, 48);
+    }
+}
+
+void des_encrypt_block (uint64_t input, 
+                  uint64_t *output,
+                  uint64_t key )
+{
+    uint64_t subkey[16];
+
+    uint64_t ip;
+    uint64_t expand;
+    uint64_t substitute;
+    uint64_t permute;
+
+    generate_subkeys(key, subkey);
+
+    permutation(input, &ip, initial_permutation_table, 64);
+    
+    for ( unsigned int round = 0; round < 16; round++)
+    {
+        permutation((ip&0x00000000FFFFFFFF), 
+                     &expand, 
+                     expansion_table, 
+                     48);
+        
+        expand ^= subkey[round];
 
         /* S-BOXes */
-        do_sbox(expansion_block,&substitution_block);
-        printf ( "SBOX: 0x%" PRIx64 "\n", substitution_block);
+        do_sbox(expand, &substitute);
 
-        permutation(substitution_block, &pbox_target, permutation_table, 32);
-        printf ( "PBOX: 0x%" PRIx64 "\n", pbox_target);
+        permutation(substitute, 
+                    &permute, 
+                    permutation_table, 32);
 
-        /* swap sides */
-        uint64_t tmp_var = (ip_block>>32LL);
-        tmp_var ^= pbox_target;
-        ip_block = (ip_block<<32LL)|tmp_var;
-        
-        printf ( "OUTPUT: 0x%" PRIx64 "\n", ip_block);
+        /* swap sides & XOR */
+        uint64_t tmp = (ip>>32);
+        tmp ^= permute;
+        ip = (ip<<32)|tmp;
     }
 
-    uint64_t tmp_var = (ip_block>>32LL);
-    ip_block = (ip_block<<32LL)|tmp_var;
+    ip = (ip<<32)|(ip>>32);
 
-    permutation ( ip_block, output, final_permutation_table, 64 );
+    permutation ( ip, output, final_permutation_table, 64 );
 }
 
 int main()
@@ -176,56 +170,10 @@ int main()
     //unsigned char input[] = "abcdefgh";
     uint64_t input = 0x6162636465666768 ;
 
-#if 0
-    for (int i = 0; i<8; i++)
-        printf("0x%02X ", input[i]);
-    printf ("\n");
-    for (int i = 0; i<8; i++)
-        printf("0x%02X ", key[i]);
-    printf ("\n");
-    //for (int i = 0; i<8; i++)
-    //    printf("0x%02X ", key[i]);
-#endif
-
     uint64_t output = 0LL;
 
-    des_encrypt_block( input, &output, cbc_iv, key ); 
+    input ^= cbc_iv;
+    des_encrypt_block( input, &output, key ); 
     printf ( "DES: 0x%" PRIx64 "\n", output);
-
 }
 
-#if 0
-int main()
-{
-    //gen_little_endian_permutation_table(spec_init_permutation);
-    //gen_little_endian_permutation_table(spec_final_permutation);
-    //gen_little_endian_pc1_table(spec_pc1_table_left);
-    //gen_little_endian_pc1_table(spec_pc1_table_right);
-
-    //uint64_t input = 0x0123456789ABCDEF;
-    uint64_t input =   0x4142434445464748;
-    uint64_t pc1_input = 0x4142434445464700;
-    uint64_t output = 0;
-    uint64_t output2 = 0;
-    uint64_t output3 = 0;
-
-#if 0
-    /* initial and final permutations */
-    permutation(input, &output, initial_permutation_table, 64);
-    printf ( "input: 0x%" PRIx64 "\npermuted: 0x%" PRIx64 "\n", input, output);
-    permutation(output, &output2, final_permutation_table, 64);
-    printf ( "unpermuted: 0x%" PRIx64 "\n", output2 );
-    if ( input == output2 )
-        printf ( "SUCCESS!\n" );
-    else
-        printf ( "FAILURE!\n" );
-    /* PC1 left and right */
-#endif
-    permutation(pc1_input, &output, pc1_table_left, 28);
-    permutation(pc1_input, &output2, pc1_table_right, 28);
-    printf ( "input: 0x%" PRIx64 "\npermuted: 0x%" PRIx64 "\n", pc1_input, output);
-    printf ( "input: 0x%" PRIx64 "\npermuted: 0x%" PRIx64 "\n", pc1_input, output2);
-    output3 = (output<<28)|output2;
-    printf ( "input: 0x%" PRIx64 "\npermuted: 0x%" PRIx64 "\n", pc1_input, output3);
-}
-#endif

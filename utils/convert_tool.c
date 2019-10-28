@@ -91,3 +91,38 @@ static void gen_little_endian_pc1_table(const uint8_t tbl[])
     printf("\n");
 }
 #endif
+#if 0
+int main()
+{
+    //gen_little_endian_permutation_table(spec_init_permutation);
+    //gen_little_endian_permutation_table(spec_final_permutation);
+    //gen_little_endian_pc1_table(spec_pc1_table_left);
+    //gen_little_endian_pc1_table(spec_pc1_table_right);
+
+    //uint64_t input = 0x0123456789ABCDEF;
+    uint64_t input =   0x4142434445464748;
+    uint64_t pc1_input = 0x4142434445464700;
+    uint64_t output = 0;
+    uint64_t output2 = 0;
+    uint64_t output3 = 0;
+
+#if 0
+    /* initial and final permutations */
+    permutation(input, &output, initial_permutation_table, 64);
+    printf ( "input: 0x%" PRIx64 "\npermuted: 0x%" PRIx64 "\n", input, output);
+    permutation(output, &output2, final_permutation_table, 64);
+    printf ( "unpermuted: 0x%" PRIx64 "\n", output2 );
+    if ( input == output2 )
+        printf ( "SUCCESS!\n" );
+    else
+        printf ( "FAILURE!\n" );
+    /* PC1 left and right */
+#endif
+    permutation(pc1_input, &output, pc1_table_left, 28);
+    permutation(pc1_input, &output2, pc1_table_right, 28);
+    printf ( "input: 0x%" PRIx64 "\npermuted: 0x%" PRIx64 "\n", pc1_input, output);
+    printf ( "input: 0x%" PRIx64 "\npermuted: 0x%" PRIx64 "\n", pc1_input, output2);
+    output3 = (output<<28)|output2;
+    printf ( "input: 0x%" PRIx64 "\npermuted: 0x%" PRIx64 "\n", pc1_input, output3);
+}
+#endif
