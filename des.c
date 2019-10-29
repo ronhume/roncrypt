@@ -9,6 +9,8 @@
 #include "common.h"
 #include "des_tables.h"
 
+typedef enum { DES_ENCRYPT, DES_DECRYPT } des_mode_t;
+
 /* 
  * Generic permutation function.
  * Paramters: input, 
@@ -60,6 +62,37 @@ void rol_28_key(uint64_t *in_left,
 }
 
 /* 
+ * Rotate 28-bit keys right, and combine output
+ * Paramters: in_left_key (out param), 
+ *            in_right_key (out param), 
+ *            out_key (out param)
+ *
+ * Return: void
+ */
+void ror_28_key(uint64_t *in_left, 
+                uint64_t *in_right, 
+                uint64_t *out_key)
+{
+    if (*in_left % 2)
+    {
+        *in_left >>= 1LL;
+        *in_left |= 1LL<<27;
+    }
+    else    
+        *in_left >>= 1LL;
+
+    if (*in_right % 2)
+    {
+        *in_right >>= 1LL;
+        *in_right |= 1LL<<27;
+    }
+    else    
+        *in_right >>= 1LL;
+
+    *out_key = (*in_left << 28) | *in_right;
+}
+
+/* 
  * S-BOX operation
  * Paramters: input
  *            output (out param)
@@ -91,13 +124,13 @@ void do_sbox(uint64_t input, uint64_t *output)
 }
 
 /* 
- * Generate DES subkeys
+ * Generate DES subkeys for encryption
  * Paramters: key
  *            subkeys array (out param)
  *
  * Return: void
  */
-void generate_subkeys ( uint64_t key, uint64_t subkey[] )
+void generate_subkeys_encrypt ( uint64_t key, uint64_t subkey[] )
 {
     uint64_t pc1key;
     uint64_t pc1key_left;
@@ -119,9 +152,38 @@ void generate_subkeys ( uint64_t key, uint64_t subkey[] )
     }
 }
 
-void des_encrypt_block (uint64_t input, 
+/* 
+ * Generate DES subkeys for decryption
+ * Paramters: key
+ *            subkeys array (out param)
+ *
+ * Return: void
+ */
+void generate_subkeys_decrypt ( uint64_t key, uint64_t subkey[] )
+{
+    uint64_t pc1key;
+    uint64_t pc1key_left;
+    uint64_t pc1key_right;
+
+    permutation(key, &pc1key_left, pc1_table_left, 28);
+    permutation(key, &pc1key_right, pc1_table_right, 28);
+
+    pc1key = (pc1key_left << 28) | pc1key_right;
+
+    for ( unsigned int round = 0; round < 16; round++ )
+    {
+        permutation(pc1key, &subkey[round], pc2_table, 48);
+        ror_28_key(&pc1key_left, &pc1key_right, &pc1key);
+
+        if ( !(round == 0 || round == 7 || round ==14 || round == 15))
+            ror_28_key(&pc1key_left, &pc1key_right, &pc1key);
+    }
+}
+
+void do_des_block (uint64_t input, 
                   uint64_t *output,
-                  uint64_t key )
+                  uint64_t key,
+                  des_mode_t mode )
 {
     uint64_t subkey[16];
 
@@ -130,7 +192,10 @@ void des_encrypt_block (uint64_t input,
     uint64_t substitute;
     uint64_t permute;
 
-    generate_subkeys(key, subkey);
+    if ( mode == DES_ENCRYPT )
+        generate_subkeys_encrypt(key, subkey);
+    else
+        generate_subkeys_decrypt(key, subkey);
 
     permutation(input, &ip, initial_permutation_table, 64);
     
@@ -164,16 +229,22 @@ void des_encrypt_block (uint64_t input,
 int main()
 {
     //unsigned char key[] = "password";
-    uint64_t key = 0x70617373776F7264;
-    //unsigned char cbc_iv[] = "initialz";
-    uint64_t cbc_iv = 0x696E697469616C7A;
+    //unsigned char salt[] = "initialz";
     //unsigned char input[] = "abcdefgh";
+
+    uint64_t key = 0x70617373776F7264;
+    uint64_t salt = 0x696E697469616C7A;
     uint64_t input = 0x6162636465666768 ;
 
     uint64_t output = 0LL;
+    uint64_t output2 = 0LL;
 
-    input ^= cbc_iv;
-    des_encrypt_block( input, &output, key ); 
+    input ^= salt;
+    do_des_block( input, &output, key, DES_ENCRYPT ); 
     printf ( "DES: 0x%" PRIx64 "\n", output);
+
+    do_des_block( output, &output2, key, DES_DECRYPT );
+    output2 ^= salt;
+    printf ( "PT: 0x%" PRIx64 "\n", output2);
 }
 
