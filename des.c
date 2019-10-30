@@ -180,6 +180,15 @@ void generate_subkeys_decrypt ( uint64_t key, uint64_t subkey[] )
     }
 }
 
+/* 
+ * Perform DES on one 64-bit block
+ * Paramters: input - the data
+ *            output (out param)
+ *            key - the key
+ *            mode (encrypt/decrypt)
+ *
+ * Return: void
+ */
 void do_des_block (uint64_t input, 
                   uint64_t *output,
                   uint64_t key,
@@ -226,25 +235,101 @@ void do_des_block (uint64_t input,
     permutation ( ip, output, final_permutation_table, 64 );
 }
 
+/* 
+ * Perform DES on one 64-bit block
+ * Paramters: input - the data
+ *            output (out param)
+ *            key - the key
+ *            salt - the salt (for CBC)
+ *            mode (encrypt/decrypt)
+ *
+ * Return: void
+ */
+void do_des (uint64_t input, 
+             uint64_t *output,
+             uint64_t key,
+             uint64_t salt,
+             des_mode_t mode )
+{
+
+    if (mode == DES_ENCRYPT)
+        input ^= salt;
+
+    do_des_block( input, output, key, mode ); 
+
+    if (mode == DES_DECRYPT)
+        *output ^= salt;
+}
+
+/* 
+ * Perform 3DES on one 64-bit block
+ * Paramters: input - the data
+ *            output (out param)
+ *            key - array of 3 64bit keys
+ *            salt - the salt (for CBC)
+ *            mode (encrypt/decrypt)
+ *
+ * Return: void
+ */
+void do_3des (uint64_t input, 
+             uint64_t *output,
+             uint64_t key[],
+             uint64_t salt,
+             des_mode_t mode )
+{
+    uint64_t output2 = 0LL;
+    uint64_t output3 = 0LL;
+
+    if (mode == DES_ENCRYPT)
+    {
+        input ^= salt;
+
+        do_des_block( input, &output3, key[0], mode ); 
+        do_des_block( output3, &output2, key[1], DES_DECRYPT ); 
+        do_des_block( output2, output, key[2], mode ); 
+    }
+    
+
+    if (mode == DES_DECRYPT)
+    {
+        do_des_block( input, &output3, key[2], mode ); 
+        do_des_block( output3, &output2, key[1], DES_ENCRYPT ); 
+        do_des_block( output2, output, key[0], mode ); 
+
+        *output ^= salt;
+    }
+
+    /* XXXX: TODO: pass back CBC residue? */
+}
+
 int main()
 {
     //unsigned char key[] = "password";
+    //unsigned char key_3des[] = "twentyfourcharacterinput";
     //unsigned char salt[] = "initialz";
     //unsigned char input[] = "abcdefgh";
 
     uint64_t key = 0x70617373776F7264;
+    uint64_t key_3des[3] = {0x7477656E7479666F,
+                            0x7572636861726163,
+                            0x746572696E707574};
     uint64_t salt = 0x696E697469616C7A;
     uint64_t input = 0x6162636465666768 ;
 
     uint64_t output = 0LL;
     uint64_t output2 = 0LL;
 
-    input ^= salt;
-    do_des_block( input, &output, key, DES_ENCRYPT ); 
+    do_des( input, &output, key, salt, DES_ENCRYPT ); 
     printf ( "DES: 0x%" PRIx64 "\n", output);
 
-    do_des_block( output, &output2, key, DES_DECRYPT );
-    output2 ^= salt;
+    do_des( output, &output2, key, salt, DES_DECRYPT );
     printf ( "PT: 0x%" PRIx64 "\n", output2);
+
+    do_3des( input, &output, key_3des, salt, DES_ENCRYPT ); 
+    printf ( "3DES: 0x%" PRIx64 "\n", output);
+
+    do_3des( output, &output2, key_3des, salt, DES_DECRYPT );
+    printf ( "PT: 0x%" PRIx64 "\n", output2);
+
 }
 
