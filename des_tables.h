@@ -1,7 +1,5 @@
-#ifndef _DES_TABLES
-#define _DES_TABLES
-
-typedef enum { ENCRYPT, DECRYPT } des_mode_t;
+#ifndef _DES_TABLES_H
+#define _DES_TABLES_H
 
 /* RECALCUALTED TABLES (little-endian/zero indexed) */
 
@@ -129,4 +127,4 @@ static const uint8_t sbox[8][64] = {
     0, 15,  6, 12, 10,  9, 13,  0, 
    15,  3,  3,  5,  5,  6,  8, 11 }
 };
-#endif //_DES_TABLES
+#endif //_DES_TABLES_H
