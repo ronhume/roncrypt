@@ -1,6 +1,8 @@
 #ifndef _DES_TABLES
 #define _DES_TABLES
 
+typedef enum { ENCRYPT, DECRYPT } des_mode_t;
+
 /* RECALCUALTED TABLES (little-endian/zero indexed) */
 
 static const uint8_t initial_permutation_table[] = {
