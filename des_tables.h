@@ -1,3 +1,11 @@
+/*
+ *
+ * File: des_tables.h
+ * Author: Ron Hume
+ * Copyright (c) 2019, All rights Reserved.
+ * 
+ */
+
 #ifndef _DES_TABLES_H
 #define _DES_TABLES_H
 

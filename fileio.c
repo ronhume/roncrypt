@@ -1,6 +1,21 @@
+/*
+ *
+ * File: fileio.c
+ * Author: Ron Hume
+ * Copyright (c) 2019, All rights Reserved.
+ * 
+ */
+
 #include "common.h"
 #include "fileio.h"
 
+/* 
+ * Convert char array to longlong little endian
+ * Paramters: c, 
+ *            ll
+ *
+ * Return: void
+ */
 static void char_to_longlong( unsigned char *c, uint64_t *ll )
 {
     *ll  = ((uint64_t)(*(c++)))<<56LL;
@@ -13,6 +28,11 @@ static void char_to_longlong( unsigned char *c, uint64_t *ll )
     *ll |= ((uint64_t)(*(c++)))<< 0LL;
 }
 
+/* 
+ * Convert longlong little endian to char array
+ *
+ * Return: void
+ */
 static void longlong_to_char(uint64_t ll, unsigned char *c) 
 {
     *((c)++)=(unsigned char)(((ll)>>56LL)&0xff);
@@ -26,16 +46,32 @@ static void longlong_to_char(uint64_t ll, unsigned char *c)
 }
 
 
+/* 
+ * Open file for reading
+ *
+ * Return: void
+ */
 int openinfile(const char* filename)
 {
     return open(filename,O_RDONLY);
 }
 
+/* 
+ * open file for writing
+ *
+ * Return: void
+ */
 int openoutfile(const char* filename)
 {
     return open(filename, O_WRONLY| O_CREAT,S_IRUSR|S_IWUSR);
 }
 
+/* 
+ * Read DES-sized block of data from file, with proper 
+ * PKCS #5/#7 padding on last block.
+ *
+ * Return: void
+ */
 ssize_t des_readblock(int fd, uint64_t *block)
 {
     unsigned char pad = 0;
@@ -58,6 +94,11 @@ ssize_t des_readblock(int fd, uint64_t *block)
     return bytes;
 }
 
+/* 
+ * Write DES block to file
+ *
+ * Return: void
+ */
 void des_writeblock(int fd, uint64_t block)
 {
     unsigned char buffer[DES_BLKSZ];
@@ -67,6 +108,11 @@ void des_writeblock(int fd, uint64_t block)
     write(fd, (char*)buffer, DES_BLKSZ);
 }
 
+/* 
+ * Close file descriptor
+ *
+ * Return: void
+ */
 void closefile(int fd)
 {
     close(fd);

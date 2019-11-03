@@ -1,3 +1,11 @@
+/*
+ *
+ * File: fileio.h
+ * Author: Ron Hume
+ * Copyright (c) 2019, All rights Reserved.
+ * 
+ */
+
 #ifndef __FILEIO_H
 #define __FILEIO_H
 #include "common.h"

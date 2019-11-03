@@ -1,3 +1,11 @@
+/*
+ *
+ * File: common.h
+ * Author: Ron Hume
+ * Copyright (c) 2019, All rights Reserved.
+ * 
+ */
+
 #ifndef __COMMON_H_
 #define __COMMON_H_
 

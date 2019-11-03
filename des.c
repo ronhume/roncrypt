@@ -360,6 +360,16 @@ void tripledes( uint64_t *input,
     }
 }
 
+/* 
+ * Perform DES on files
+ * Paramters: in_fd - input file descriptor
+ *            out_fd - output file descriptor
+ *            key - DES key
+ *            salt - the salt (for CBC)
+ *            mode (encrypt/decrypt)
+ *
+ * Return: void
+ */
 void des_file( int in_fd, 
                int out_fd,
                uint64_t key,
@@ -413,6 +423,16 @@ void des_file( int in_fd,
     }
 }
 
+/* 
+ * Perform 3DES on files
+ * Paramters: in_fd - input file descriptor
+ *            out_fd - output file descriptor
+ *            key - 3DES key array of 3 keys
+ *            salt - the salt (for CBC)
+ *            mode (encrypt/decrypt)
+ *
+ * Return: void
+ */
 void tripledes_file( int in_fd, 
                int out_fd,
                uint64_t key[],

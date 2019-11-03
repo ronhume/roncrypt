@@ -1,3 +1,11 @@
+/*
+ *
+ * File: des.h
+ * Author: Ron Hume
+ * Copyright (c) 2019, All rights Reserved.
+ * 
+ */
+
 #ifndef _DES_H
 #define _DES_H
 
