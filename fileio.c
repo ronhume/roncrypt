@@ -1,9 +1,4 @@
-#include "../common.h"
-#include <unistd.h>
-#include <sys/types.h>
-#include <sys/stat.h>
-#include <fcntl.h>
-
+#include "common.h"
 #include "fileio.h"
 
 static void char_to_longlong( unsigned char *c, uint64_t *ll )
