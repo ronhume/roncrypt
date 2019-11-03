@@ -397,11 +397,19 @@ void des_file( int in_fd,
         des_writeblock(out_fd, output);
     }
 
-    if ( pad_full_block )
+    if (mode == ENCRYPT && pad_full_block)
     {
         input = 0x0808080808080808LL;
         do_des( input, &output, key, salt, mode ); 
         des_writeblock(out_fd, output);
+    }
+
+    if (mode == DECRYPT)
+    {
+        /* remove padding */
+        size_t how_much = (size_t)(output & 0x00000000000000FFLL);
+        size_t newsize = filesize-how_much;
+        ftruncate(out_fd, newsize);
     }
 }
 
@@ -418,14 +426,17 @@ void tripledes_file( int in_fd,
     lseek (in_fd, 0L, SEEK_SET);
 
     /* PKCS #5/#7 padding */
-    if (!(filesize % DES_BLKSZ))
+    if ( mode == ENCRYPT)
     {
-        pad_full_block = true;
-        filesize+=DES_BLKSZ;
-    }
-    else
-    {
-        filesize+=(DES_BLKSZ-(filesize%DES_BLKSZ));
+        if (!(filesize % DES_BLKSZ))
+        {
+            pad_full_block = true;
+            filesize+=DES_BLKSZ;
+        }
+        else
+        {
+            filesize+=(DES_BLKSZ-(filesize%DES_BLKSZ));
+        }
     }
 
     while (des_readblock(in_fd, &input)>0)
@@ -439,11 +450,19 @@ void tripledes_file( int in_fd,
         des_writeblock(out_fd, output);
     }
 
-    if ( pad_full_block )
+    if ( (mode == ENCRYPT) && pad_full_block )
     {
         input = 0x0808080808080808LL;
         do_3des( input, &output, key, salt, mode ); 
         des_writeblock(out_fd, output);
+    }
+
+    if (mode == DECRYPT )
+    {
+        /* remove padding */
+        size_t how_much = (size_t)(output & 0x00000000000000FFLL);
+        size_t newsize = filesize-how_much;
+        ftruncate(out_fd, newsize);
     }
 }
 

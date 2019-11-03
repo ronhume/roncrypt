@@ -28,6 +28,8 @@ md5 dec.3des
 OpenSSL:
 encrypt with des_encrypt and tripledes_encrypt
 decrypt with OpenSSL:
+openssl enc -d -des -K 70617373776F7264 -iv 696E697469616C7A -out dec_openssl.des -in enc.des 
+openssl enc -d -des3 -K 7477656E7479666F7572636861726163746572696E707574 -iv 696E697469616C7A -out dec_openssl.3des -in enc.3des 
 
 md5 testfile.dat
 md5 dec_openssl.des
@@ -35,8 +37,12 @@ md5 dec_openssl.3des
 
 ========> 2 <===========
 encrypt with OpenSSL:
+openssl enc -des -K 70617373776F7264 -iv 696E697469616C7A -out enc.des -in testfile.dat
+enc -des3 -K 7477656E7479666F7572636861726163746572696E707574 -iv 696E697469616C7A -out enc.3des -in testfile.dat
+
 decrypt with des_decrypt and tripledes_decrypt
 
 md5 testfile.dat
-md5 dec_openssl.des
-md5 dec_openssl.3des
+md5 dec.des
+md5 dec.3des
+

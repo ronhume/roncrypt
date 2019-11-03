@@ -1,4 +1,5 @@
 libdes.a
 des.o
 fileio.o
+.DS_Store
 

@@ -1,7 +1,17 @@
-add command line for KEY/IV in test tools
-test des_encrypt
-test des_decrypt
-test tripledes_encrypt
-test tripledes_decrypt
-each with itself and openssl
+Nice to have:
+* add command line for KEY/IV in test tools
+
+Test results:
+test des_encrypt                    PASS
+test des_decrypt                    PASS
+test tripledes_encrypt              PASS
+test tripledes_decrypt              PASS
+
+each with openssl
+enc des_encrypt dec openssl         PASS
+enc tripledes_encrypt dec openssl   PASS
+
+enc openssl dec des_decrypt         PASS
+enc openssl dec tripledes_encrypt   PASS
+
 
