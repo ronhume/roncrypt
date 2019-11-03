@@ -3,11 +3,6 @@
 
 int main()
 {
-    //unsigned char key[] = "password";
-    //unsigned char key_3des[] = "twentyfourcharacterinput";
-    //unsigned char salt[] = "initialz";
-    //unsigned char input[] = "abcdefgh";
-
     uint64_t key = 0x70617373776F7264;
     uint64_t key_3des[3] = {0x7477656E7479666F,
                             0x7572636861726163,

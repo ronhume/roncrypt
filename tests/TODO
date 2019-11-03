@@ -1,3 +1,4 @@
+add command line for KEY/IV in test tools
 test des_encrypt
 test des_decrypt
 test tripledes_encrypt

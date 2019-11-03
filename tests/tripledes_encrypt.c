@@ -9,10 +9,10 @@ int main()
                             0x746572696E707574};
     uint64_t salt = 0x696E697469616C7A;
 
-    int infile = openinfile("./enc.3des");
-    int outfile = openoutfile("./dec.3des");
+    int infile = openinfile("./testfile.dat");
+    int outfile = openoutfile("./enc.3des");
 
-    tripledes_file(infile, outfile, key_3des, salt, DECRYPT);
+    tripledes_file(infile, outfile, key_3des, salt, ENCRYPT);
 
     closefile(infile);
     closefile(outfile);

@@ -1,0 +1,42 @@
+========> 1 <===========
+to encrypt:
+create file testfile.dat:
+    dd if=/dev/urandom of=testfile.dat bs=2k count=1
+to create non-block-aligned input:
+    echo -n abc >> testfile.dat
+
+des_encrypt
+tripledes_encrypt
+
+check files:
+enc.des
+des.3des
+
+to decrypt:
+des_decrypt
+tripledes_decrypt
+
+check files:
+dec.des
+dec.3des
+
+md5 testfile.dat
+md5 dec.des
+md5 dec.3des
+
+========> 2 <===========
+OpenSSL:
+encrypt with des_encrypt and tripledes_encrypt
+decrypt with OpenSSL:
+
+md5 testfile.dat
+md5 dec_openssl.des
+md5 dec_openssl.3des
+
+========> 2 <===========
+encrypt with OpenSSL:
+decrypt with des_decrypt and tripledes_decrypt
+
+md5 testfile.dat
+md5 dec_openssl.des
+md5 dec_openssl.3des

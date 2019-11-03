@@ -304,6 +304,17 @@ static void do_3des (uint64_t input,
     }
 }
 
+/* 
+ * Perform DES on 64-bit array of blocks
+ * Paramters: input - the data
+ *            output - encrypted blocks
+ *            length - how much input
+ *            key - DES key
+ *            salt - the salt (for CBC)
+ *            mode (encrypt/decrypt)
+ *
+ * Return: void
+ */
 void des( uint64_t *input, 
           uint64_t *output,
           size_t  length,
@@ -321,6 +332,17 @@ void des( uint64_t *input,
     }
 }
 
+/* 
+ * Perform 3DES on 64-bit array of blocks
+ * Paramters: input - the data
+ *            output - encrypted blocks
+ *            length - how much input
+ *            key - 3DES key array of 3 keys
+ *            salt - the salt (for CBC)
+ *            mode (encrypt/decrypt)
+ *
+ * Return: void
+ */
 void tripledes( uint64_t *input, 
                 uint64_t *output,
                 size_t  length,
@@ -351,14 +373,17 @@ void des_file( int in_fd,
     lseek (in_fd, 0L, SEEK_SET);
 
     /* PKCS #5/#7 padding */
-    if (!(filesize % DES_BLKSZ))
+    if (mode == ENCRYPT)
     {
-        pad_full_block = true;
-        filesize+=DES_BLKSZ;
-    }
-    else
-    {
-        filesize+=(DES_BLKSZ-(filesize%DES_BLKSZ));
+        if (!(filesize % DES_BLKSZ))
+        {
+            pad_full_block = true;
+            filesize+=DES_BLKSZ;
+        }
+        else
+        {
+            filesize+=(DES_BLKSZ-(filesize%DES_BLKSZ));
+        }
     }
 
     while (des_readblock(in_fd, &input)>0)
@@ -379,3 +404,46 @@ void des_file( int in_fd,
         des_writeblock(out_fd, output);
     }
 }
+
+void tripledes_file( int in_fd, 
+               int out_fd,
+               uint64_t key[],
+               uint64_t salt,
+               des_mode_t mode )
+{
+    bool pad_full_block = false;
+    uint64_t input, output;
+
+    size_t filesize = lseek(in_fd, 0L, SEEK_END);
+    lseek (in_fd, 0L, SEEK_SET);
+
+    /* PKCS #5/#7 padding */
+    if (!(filesize % DES_BLKSZ))
+    {
+        pad_full_block = true;
+        filesize+=DES_BLKSZ;
+    }
+    else
+    {
+        filesize+=(DES_BLKSZ-(filesize%DES_BLKSZ));
+    }
+
+    while (des_readblock(in_fd, &input)>0)
+    {
+        do_3des( input, &output, key, salt, mode ); 
+        if ( mode == ENCRYPT )
+            salt = output;
+        else
+            salt = input;
+
+        des_writeblock(out_fd, output);
+    }
+
+    if ( pad_full_block )
+    {
+        input = 0x0808080808080808LL;
+        do_3des( input, &output, key, salt, mode ); 
+        des_writeblock(out_fd, output);
+    }
+}
+
