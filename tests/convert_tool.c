@@ -1,3 +1,14 @@
+/*
+ *
+ * File: convert_tool.c
+ * Author: Ron Hume
+ * Copyright (c) 2019, All rights Reserved.
+ * 
+ * A junk file with some old convert routines 
+ * that I couldn't throw away after building 
+ * the new DES tables.
+ */
+
 #include "common.h"
 
 #if 0
