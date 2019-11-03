@@ -9,6 +9,7 @@
 #include "common.h"
 #include "des.h"
 #include "des_tables.h"
+#include "fileio.h"
 
 /* 
  * Generic permutation function.
@@ -337,3 +338,44 @@ void tripledes( uint64_t *input,
     }
 }
 
+void des_file( int in_fd, 
+               int out_fd,
+               uint64_t key,
+               uint64_t salt,
+               des_mode_t mode )
+{
+    bool pad_full_block = false;
+    uint64_t input, output;
+
+    size_t filesize = lseek(in_fd, 0L, SEEK_END);
+    lseek (in_fd, 0L, SEEK_SET);
+
+    /* PKCS #5/#7 padding */
+    if (!(filesize % DES_BLKSZ))
+    {
+        pad_full_block = true;
+        filesize+=DES_BLKSZ;
+    }
+    else
+    {
+        filesize+=(DES_BLKSZ-(filesize%DES_BLKSZ));
+    }
+
+    while (des_readblock(in_fd, &input)>0)
+    {
+        do_des( input, &output, key, salt, mode ); 
+        if ( mode == ENCRYPT )
+            salt = output;
+        else
+            salt = input;
+
+        des_writeblock(out_fd, output);
+    }
+
+    if ( pad_full_block )
+    {
+        input = 0x0808080808080808LL;
+        do_des( input, &output, key, salt, mode ); 
+        des_writeblock(out_fd, output);
+    }
+}
