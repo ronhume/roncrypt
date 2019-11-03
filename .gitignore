@@ -1,1 +1,4 @@
-des
+libdes.a
+des.o
+fileio.o
+

@@ -1,0 +1,6 @@
+test des_encrypt
+test des_decrypt
+test tripledes_encrypt
+test tripledes_decrypt
+each with itself and openssl
+
