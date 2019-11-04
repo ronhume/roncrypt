@@ -8,7 +8,7 @@ TARGETS= destest_mem \
 
 all: $(TARGETS)
 
-OPTIONS = -Wall
+OPTIONS = -Wall -O3
 INCDIRS=-I. -I..
 LIBDIR=-L..
 DESLIB=-ldes

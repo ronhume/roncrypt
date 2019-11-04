@@ -2,7 +2,7 @@
 
 all: libdes.a
 
-OPTIONS = -Wall
+OPTIONS = -Wall -O3
 DES_DEPS = des.c des.h des_tables.h common.h
 DES_TOOLS_DEPS = fileio.c fileio.h
 INCDIRS=-I. 

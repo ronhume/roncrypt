@@ -46,3 +46,37 @@ md5 testfile.dat
 md5 dec.des
 md5 dec.3des
 
+//uint64_t key = 0x70617373776F7264;
+    uint64_t key =   0x0102030405060708;
+    //uint64_t salt = 0x696E697469616C7A;
+    uint64_t salt =   0xFFFEFDFCFBFAF9F8;
+openssl enc -d -des -K 0102030405060708 -iv FFFEFDFCFBFAF9F8 -out dec_openssl.des -in enc.des 
+
+1G file 
+
+$ time ./des_encrypt
+
+real	13m3.761s
+user	5m0.673s
+sys	7m50.740s
+
+$ openssl enc -des -K 0102030405060708 -iv FFFEFDFCFBFAF9F8 -out enc_openssl.des -in testfile.dat 
+^C
+$ time openssl enc -des -K 0102030405060708 -iv FFFEFDFCFBFAF9F8 -out enc_openssl.des -in testfile.dat 
+
+real	0m14.696s
+user	0m13.107s
+sys	0m1.538s
+
+$ time ./tripledes_encrypt
+
+real	21m28.634s
+user	13m9.875s
+sys	8m4.506s
+
+$ time openssl enc -des3 -K 0102030405060708090A0B0C0D0E0F101112131415161718 -iv FFFEFDFCFBFAF9F8 -out enc_openssl.3des -in testfile.dat 
+
+real	0m37.183s
+user	0m35.480s
+sys	0m1.556s
+

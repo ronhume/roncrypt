@@ -12,8 +12,10 @@
 
 int main()
 {
-    uint64_t key = 0x70617373776F7264;
-    uint64_t salt = 0x696E697469616C7A;
+    //uint64_t key = 0x70617373776F7264;
+    uint64_t key =   0x0102030405060708;
+    //uint64_t salt = 0x696E697469616C7A;
+    uint64_t salt =   0xFFFEFDFCFBFAF9F8;
 
     int infile = openinfile("./testfile.dat");
     int outfile = openoutfile("./enc.des");
