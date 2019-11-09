@@ -11,6 +11,10 @@ int openoutfile ( const char* filename )
 ```
 Opens an output file for writing.
 ```C
+FILE* outfile_buffered ( int fd, size_t bufsz, char** vbuffer)
+```
+Upgrades an int fd to FILE* and adds setvbuf() buffering.
+```C
 ssize_t des_readblock(int fd, uint64_t *block)
 ```
 Reads in a DES-sized block for processing, including proper PKCS #5/#7 padding.
@@ -22,6 +26,10 @@ Writes out a DES-sized block.
 void closefile(int fd)
 ```
 Closes the open file.
+```C
+void closefile_buffered(FILE* fd, void **vbuffer)
+```
+Closes the open file that has been set up for buffered I/O, and frees the associated buffer.
 
 #### DES and 3DES APIs
 
@@ -37,8 +45,8 @@ void des( uint64_t *input,
 ```
 Performs DES operation on an input memory buffer of length __length__, and puts result in output buffer, using key and salt for encryption.  Salt allows support of CBC mode.
 ```C
-void des_file( int in_fd, 
-               int out_fd,
+void des_file( const char* const in,
+               const char* const out,
                uint64_t key,
                uint64_t salt,
                des_mode_t mode );
@@ -54,8 +62,8 @@ void tripledes( uint64_t *input,
 ```
 Performs 3DES operation on an input memory buffer of length __length__, and puts result in output buffer, using key and salt for encryption.  Salt allows support of CBC mode.
 ```C
-void tripledes_file( int in_fd,
-                     int out_fd,
+void tripledes_file( const char* const in,
+                     const char* const out,
                      uint64_t key[],
                      uint64_t salt,
                      des_mode_t mode );
