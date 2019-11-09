@@ -18,8 +18,8 @@ void des( uint64_t *input,
           uint64_t salt,
           des_mode_t mode );
 
-void des_file( int in_fd, 
-               int out_fd,
+void des_file( const char* const in, 
+               const char* const out,
                uint64_t key,
                uint64_t salt,
                des_mode_t mode );
@@ -31,8 +31,8 @@ void tripledes( uint64_t *input,
                 uint64_t salt,
                 des_mode_t mode );
 
-void tripledes_file( int in_fd,
-                     int out_fd,
+void tripledes_file( const char* const in,
+                     const char* const out,
                      uint64_t key[],
                      uint64_t salt,
                      des_mode_t mode );

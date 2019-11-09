@@ -11,20 +11,12 @@
 
 int main()
 {
-    //uint64_t key = 0x70617373776F7264;
-    uint64_t key =   0x0102030405060708;
-    //uint64_t salt = 0x696E697469616C7A;
-    uint64_t salt =   0xFFFEFDFCFBFAF9F8;
+    uint64_t key = 0x0102030405060708;
+    uint64_t salt = 0xFFFEFDFCFBFAF9F8;
 
-#if 0
-    uint64_t key_3des[3] = {0x7477656E7479666F,
-                            0x7572636861726163,
-                            0x746572696E707574};
-#else
     uint64_t key_3des[3] = {0x0102030405060708,
                             0x090A0B0C0D0E0F10,
                             0x1112131415161718};
-#endif
 
     uint64_t input[5] = {
             0x6162636465666768,

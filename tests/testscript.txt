@@ -4,13 +4,15 @@ create file testfile.dat:
     dd if=/dev/urandom of=testfile.dat bs=2k count=1
 to create non-block-aligned input:
     echo -n abc >> testfile.dat
+To create BIG file:
+    dd if=/dev/urandom of=testfile.dat bs=1024m count=1
 
 des_encrypt
 tripledes_encrypt
 
 check files:
 enc.des
-des.3des
+enc.3des
 
 to decrypt:
 des_decrypt
@@ -60,8 +62,13 @@ real	13m3.761s
 user	5m0.673s
 sys	7m50.740s
 
-$ openssl enc -des -K 0102030405060708 -iv FFFEFDFCFBFAF9F8 -out enc_openssl.des -in testfile.dat 
-^C
+after precalculating key schedule
+$ time ./des_encrypt 
+
+real	11m43.177s
+user	3m45.889s
+sys	7m44.980s
+
 $ time openssl enc -des -K 0102030405060708 -iv FFFEFDFCFBFAF9F8 -out enc_openssl.des -in testfile.dat 
 
 real	0m14.696s
@@ -79,4 +86,41 @@ $ time openssl enc -des3 -K 0102030405060708090A0B0C0D0E0F101112131415161718 -iv
 real	0m37.183s
 user	0m35.480s
 sys	0m1.556s
+
+DES - buffered writes
+real	2m39.952s
+user	1m37.938s
+sys	1m1.170s
+
+====================
+full test buffered writes:
+$ dd if=/dev/urandom of=testfile.dat bs=1024m count=1
+
+1+0 records in
+1+0 records out
+1073741824 bytes transferred in 35.884919 secs (29921813 bytes/sec)
+
+$ time ./des_encrypt
+
+real	2m40.516s
+user	1m38.066s
+sys	1m1.390s
+
+$ time ./tripledes_encrypt
+
+real	4m48.193s
+user	3m45.074s
+sys	1m2.118s
+
+$ time ./des_decrypt 
+
+real	2m41.127s
+user	1m37.906s
+sys	1m2.095s
+
+$ time ./tripledes_decrypt 
+
+real	4m50.545s
+user	3m45.472s
+sys	1m3.521s
 

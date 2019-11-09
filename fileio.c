@@ -11,43 +11,46 @@
 
 /* 
  * Convert char array to longlong little endian
- * Paramters: c, 
- *            ll
+ * Paramters: in, 
+ *            out
  *
  * Return: void
  */
-static void char_to_longlong( unsigned char *c, uint64_t *ll )
+static void char_to_longlong( unsigned char* in, uint64_t *out )
 {
-    *ll  = ((uint64_t)(*(c++)))<<56LL;
-    *ll |= ((uint64_t)(*(c++)))<<48LL;
-    *ll |= ((uint64_t)(*(c++)))<<40LL;
-    *ll |= ((uint64_t)(*(c++)))<<32LL;
-    *ll |= ((uint64_t)(*(c++)))<<24LL;
-    *ll |= ((uint64_t)(*(c++)))<<16LL;
-    *ll |= ((uint64_t)(*(c++)))<< 8LL;
-    *ll |= ((uint64_t)(*(c++)))<< 0LL;
+    *out  = ((uint64_t)(*(in++)))<<56;
+    *out |= ((uint64_t)(*(in++)))<<48;
+    *out |= ((uint64_t)(*(in++)))<<40;
+    *out |= ((uint64_t)(*(in++)))<<32;
+    *out |= ((uint64_t)(*(in++)))<<24;
+    *out |= ((uint64_t)(*(in++)))<<16;
+    *out |= ((uint64_t)(*(in++)))<< 8;
+    *out |= ((uint64_t)(*(in++)))    ;
 }
 
 /* 
  * Convert longlong little endian to char array
+ * Paramters: in, 
+ *            out
  *
  * Return: void
  */
-static void longlong_to_char(uint64_t ll, unsigned char *c) 
+static void longlong_to_char(uint64_t in, unsigned char *out) 
 {
-    *((c)++)=(unsigned char)(((ll)>>56LL)&0xff);
-    *((c)++)=(unsigned char)(((ll)>>48LL)&0xff);
-    *((c)++)=(unsigned char)(((ll)>>40LL)&0xff);
-    *((c)++)=(unsigned char)(((ll)>>32LL)&0xff);
-    *((c)++)=(unsigned char)(((ll)>>24LL)&0xff);
-    *((c)++)=(unsigned char)(((ll)>>16LL)&0xff);
-    *((c)++)=(unsigned char)(((ll)>> 8LL)&0xff);
-    *((c)++)=(unsigned char)(((ll)>> 0LL)&0xff);
+    *((out)++)=(unsigned char)(((in)>>56)&0xff);
+    *((out)++)=(unsigned char)(((in)>>48)&0xff);
+    *((out)++)=(unsigned char)(((in)>>40)&0xff);
+    *((out)++)=(unsigned char)(((in)>>32)&0xff);
+    *((out)++)=(unsigned char)(((in)>>24)&0xff);
+    *((out)++)=(unsigned char)(((in)>>16)&0xff);
+    *((out)++)=(unsigned char)(((in)>> 8)&0xff);
+    *((out)++)=(unsigned char)(((in)    )&0xff);
 }
 
 
 /* 
  * Open file for reading
+ * Parameters: filename
  *
  * Return: void
  */
@@ -58,6 +61,7 @@ int openinfile(const char* filename)
 
 /* 
  * open file for writing
+ * Parameters: filename
  *
  * Return: void
  */
@@ -67,8 +71,41 @@ int openoutfile(const char* filename)
 }
 
 /* 
+ * convert file descriptor to buffered to output
+ * Parameters: fd - file descriptor
+ *             bufsz - size of desired buffer
+ *             vbuffer - pointer to buffer pointer
+ *
+ * Return: void
+ */
+FILE* outfile_buffered(int fd, size_t bufsz, char**vbuffer)
+{
+    FILE* fp = fdopen(fd, "w");
+    if ( fp == NULL )
+    {
+        perror("fdopen()");
+        exit(1);
+    }
+
+    /* allocate memory */
+    *vbuffer = malloc (bufsz);
+    if ( *vbuffer == NULL )
+    {
+        perror("malloc()");
+        exit(1);
+    }
+
+    /* setvbuf */
+    setvbuf(fp, *vbuffer, _IOFBF, bufsz);
+
+    return fp;
+}
+
+/* 
  * Read DES-sized block of data from file, with proper 
  * PKCS #5/#7 padding on last block.
+ * Parameters: fd - file descriptor
+ *             block - pointer to block (out param)
  *
  * Return: void
  */
@@ -96,6 +133,8 @@ ssize_t des_readblock(int fd, uint64_t *block)
 
 /* 
  * Write DES block to file
+ * Parameters: fd - file descriptor
+ *             block - data block to be written
  *
  * Return: void
  */
@@ -109,12 +148,43 @@ void des_writeblock(int fd, uint64_t block)
 }
 
 /* 
+ * Write DES block to buffered file
+ * Parameters: fd - file descriptor
+ *             block - data block to be written
+ *
+ * Return: void
+ */
+void des_writeblock_buffered(FILE* fd, uint64_t block)
+{
+    unsigned char buffer[DES_BLKSZ];
+
+    longlong_to_char ( block, buffer );
+
+    fwrite(buffer, DES_BLKSZ, 1, fd);
+}
+
+/* 
  * Close file descriptor
+ * Parameters: fd - file descriptor
  *
  * Return: void
  */
 void closefile(int fd)
 {
     close(fd);
+}
+
+/* 
+ * Close buffered file descriptor
+ * Parameters: fd - file descriptor
+ *             vbuffer - pointer to buffer pointer
+ *
+ * Return: void
+ */
+void closefile_buffered(FILE* fd, void** vbuffer)
+{
+    fclose(fd);
+    free(*vbuffer);
+    *vbuffer = NULL;
 }
 

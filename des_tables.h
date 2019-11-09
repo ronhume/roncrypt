@@ -21,7 +21,7 @@ static const uint8_t initial_permutation_table[] = {
     60, 52, 44, 36, 28, 20, 12, 4, 
     62, 54, 46, 38, 30, 22, 14, 6 };
 
-static const uint8_t  final_permutation_table[] = {
+static const uint8_t final_permutation_table[] = {
     39, 7, 47, 15, 55, 23, 63, 31, 
     38, 6, 46, 14, 54, 22, 62, 30, 
     37, 5, 45, 13, 53, 21, 61, 29, 

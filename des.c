@@ -11,6 +11,8 @@
 #include "des_tables.h"
 #include "fileio.h"
 
+#define ONE_BIT (1ULL)
+
 /* 
  * Generic permutation function.
  * Paramters: input, 
@@ -25,11 +27,12 @@ static void permutation( uint64_t input,
                          const uint8_t table[], 
                          size_t num )
 {
-    *output &= 0x0000000000000000;
+    register uint64_t out = 0;
 
     for (uint8_t i = 0; i < num; i++ )
-        if (!!((1LL<<table[i]) & input))
-            *output |= (1LL<<i);
+        out |= ((input>>table[i])&ONE_BIT)<<i;
+
+    *output = out;
 }
 
 /* 
@@ -44,19 +47,13 @@ static void rol_28_key(uint64_t *in_left,
                        uint64_t *in_right, 
                        uint64_t *out_key)
 {
-    *in_left <<= 1LL;
-    if (!!(*in_left & 0x0000000010000000))
-    {
-      *in_left &= 0x000000000FFFFFFF;
-      *in_left |= 1LL;
-    }
+    *in_left <<= 1;
+    if (!!(*in_left & 0x0000000010000000ULL))
+      *in_left ^= 0x0000000010000001ULL;
 
-    *in_right <<= 1LL;
-    if (!!(*in_right & 0x0000000010000000))
-    {
-      *in_right &= 0x000000000FFFFFFF;
-      *in_right |= 1LL;
-    }
+    *in_right <<= 1;
+    if (!!(*in_right & 0x0000000010000000ULL))
+      *in_right ^= 0x0000000010000001ULL;
 
     *out_key = (*in_left << 28) | *in_right;
 }
@@ -73,21 +70,15 @@ static void ror_28_key(uint64_t *in_left,
                        uint64_t *in_right, 
                        uint64_t *out_key)
 {
-    if (*in_left % 2)
-    {
-        *in_left >>= 1LL;
-        *in_left |= 1LL<<27;
-    }
-    else    
-        *in_left >>= 1LL;
+    if (*in_left & ONE_BIT)
+        *in_left |= ONE_BIT<<28;
 
-    if (*in_right % 2)
-    {
-        *in_right >>= 1LL;
-        *in_right |= 1LL<<27;
-    }
-    else    
-        *in_right >>= 1LL;
+    *in_left >>= 1;
+
+    if (*in_right & ONE_BIT)
+        *in_right |= ONE_BIT<<28;
+
+    *in_right >>= 1;
 
     *out_key = (*in_left << 28) | *in_right;
 }
@@ -103,24 +94,24 @@ static void ror_28_key(uint64_t *in_left,
 
 static void do_sbox(uint64_t input, uint64_t *output)
 {
-    *output = 0LL;
-
+    register uint64_t out = 0;
     uint8_t bits[NUM_SBOXES];
 
     /* grab 6-bit valus */
     for ( int i = 0; i < NUM_SBOXES; i++ )
     {
-        bits[i] = input & 0x3FLL;
+        bits[i] = input & 0x3FULL;
         input >>= 6;
     }
 
     /* do SBOX substitutions */
     for ( int i = 0; i < NUM_SBOXES; i++ )
     {
-        *output |= sbox[i][bits[(NUM_SBOXES-1)-i]];
-        *output <<= 4;
+        out <<= 4;
+        out |= sbox[i][bits[(NUM_SBOXES-1)-i]];
     }
-    *output >>=4;
+
+    *output = out;
 }
 
 /* 
@@ -185,30 +176,50 @@ static void generate_subkeys_decrypt (
 }
 
 /* 
+ * Generate subkeys from key for 3DES
+ * Paramters: key - key array of 3 DES keys
+ *            subkey (out param) - 3 arrays of 16 subkeys
+ *            mode (encrypt/decrypt)
+ *
+ * Return: void
+ */
+static void generate_subkeys_3des(
+                uint64_t key[],
+                uint64_t subkey[][16],
+                des_mode_t mode )
+{
+    if ( mode == ENCRYPT )
+    {
+        generate_subkeys_encrypt(key[0], subkey[0]);
+        generate_subkeys_encrypt(key[1], subkey[1]);
+        generate_subkeys_encrypt(key[2], subkey[2]);
+    }
+    else
+    {
+        generate_subkeys_decrypt(key[0], subkey[0]);
+        generate_subkeys_decrypt(key[1], subkey[1]);
+        generate_subkeys_decrypt(key[2], subkey[2]);
+    }
+}
+
+/* 
  * Perform DES on one 64-bit block
  * Paramters: input - the data
  *            output (out param)
- *            key - the key
+ *            subkey - subkey array of 16 subkeys
  *            mode (encrypt/decrypt)
  *
  * Return: void
  */
 static void do_des_block (uint64_t input, 
                           uint64_t *output,
-                          uint64_t key,
+                          uint64_t subkey[],
                           des_mode_t mode )
 {
-    uint64_t subkey[16];
-
     uint64_t ip;
     uint64_t expand;
     uint64_t substitute;
     uint64_t permute;
-
-    if ( mode == ENCRYPT )
-        generate_subkeys_encrypt(key, subkey);
-    else
-        generate_subkeys_decrypt(key, subkey);
 
     permutation(input, &ip, initial_permutation_table, 64);
     
@@ -243,7 +254,7 @@ static void do_des_block (uint64_t input,
  * Perform DES on one 64-bit block
  * Paramters: input - the data
  *            output (out param)
- *            key - the key
+ *            subkey - array of 16 subkeys
  *            salt - the salt (for CBC)
  *            mode (encrypt/decrypt)
  *
@@ -251,15 +262,14 @@ static void do_des_block (uint64_t input,
  */
 static void do_des (uint64_t input, 
                     uint64_t *output,
-                    uint64_t key,
+                    uint64_t subkey[],
                     uint64_t salt,
                     des_mode_t mode )
 {
-
     if (mode == ENCRYPT)
         input ^= salt;
 
-    do_des_block( input, output, key, mode ); 
+    do_des_block( input, output, subkey, mode ); 
 
     if (mode == DECRYPT)
         *output ^= salt;
@@ -269,7 +279,7 @@ static void do_des (uint64_t input,
  * Perform 3DES on one 64-bit block
  * Paramters: input - the data
  *            output (out param)
- *            key - array of 3 64bit keys
+ *            subkey - array of 3 16 subkey arrays
  *            salt - the salt (for CBC)
  *            mode (encrypt/decrypt)
  *
@@ -277,28 +287,28 @@ static void do_des (uint64_t input,
  */
 static void do_3des (uint64_t input, 
                      uint64_t *output,
-                     uint64_t key[],
+                     uint64_t subkey[][16],
                      uint64_t salt,
                      des_mode_t mode )
 {
-    uint64_t output2 = 0LL;
-    uint64_t output3 = 0LL;
+    uint64_t output2 = 0ULL;
+    uint64_t output3 = 0ULL;
 
     if (mode == ENCRYPT)
     {
         input ^= salt;
 
-        do_des_block( input, &output3, key[0], mode ); 
-        do_des_block( output3, &output2, key[1], DECRYPT ); 
-        do_des_block( output2, output, key[2], mode ); 
+        do_des_block( input, &output3, subkey[0], mode ); 
+        do_des_block( output3, &output2, subkey[1], DECRYPT ); 
+        do_des_block( output2, output, subkey[2], mode ); 
     }
     
 
     if (mode == DECRYPT)
     {
-        do_des_block( input, &output3, key[2], mode ); 
-        do_des_block( output3, &output2, key[1], ENCRYPT ); 
-        do_des_block( output2, output, key[0], mode ); 
+        do_des_block( input, &output3, subkey[2], mode ); 
+        do_des_block( output3, &output2, subkey[1], ENCRYPT ); 
+        do_des_block( output2, output, subkey[0], mode ); 
 
         *output ^= salt;
     }
@@ -322,9 +332,15 @@ void des( uint64_t *input,
           uint64_t salt,
           des_mode_t mode )
 {
+    uint64_t subkey[16];
+    if ( mode == ENCRYPT )
+        generate_subkeys_encrypt(key, subkey);
+    else
+        generate_subkeys_decrypt(key, subkey);
+
     for ( int i = 0; i < length; i++ )
     {
-        do_des( input[i], &output[i], key, salt, mode ); 
+        do_des( input[i], &output[i], subkey, salt, mode ); 
         if ( mode == ENCRYPT )
             salt = output[i];
         else
@@ -350,9 +366,13 @@ void tripledes( uint64_t *input,
                 uint64_t salt,
                 des_mode_t mode )
 {
+    uint64_t subkey[3][16];
+
+    generate_subkeys_3des(key, subkey, mode);
+
     for ( int i = 0; i < length; i++ )
     {
-        do_3des( input[i], &output[i], key, salt, mode ); 
+        do_3des( input[i], &output[i], subkey, salt, mode ); 
         if ( mode == ENCRYPT )
             salt = output[i];
         else
@@ -362,25 +382,29 @@ void tripledes( uint64_t *input,
 
 /* 
  * Perform DES on files
- * Paramters: in_fd - input file descriptor
- *            out_fd - output file descriptor
+ * Paramters: in - input file name
+ *            out - output file name
  *            key - DES key
  *            salt - the salt (for CBC)
  *            mode (encrypt/decrypt)
  *
  * Return: void
  */
-void des_file( int in_fd, 
-               int out_fd,
+void des_file( const char* const in, 
+               const char* const out,
                uint64_t key,
                uint64_t salt,
                des_mode_t mode )
 {
     bool pad_full_block = false;
     uint64_t input, output;
+    uint64_t subkey[16];
+ 
+    int infile = openinfile(in);
+    int outfile = openoutfile(out);
 
-    size_t filesize = lseek(in_fd, 0L, SEEK_END);
-    lseek (in_fd, 0L, SEEK_SET);
+    size_t filesize = lseek(infile, 0L, SEEK_END);
+    lseek (infile, 0L, SEEK_SET);
 
     /* PKCS #5/#7 padding */
     if (mode == ENCRYPT)
@@ -396,54 +420,84 @@ void des_file( int in_fd,
         }
     }
 
-    while (des_readblock(in_fd, &input)>0)
+    char* bufptr;
+    size_t bufsz;
+
+    /* make reasonablly sized, page-aligned output buffer */
+    if ( filesize < 4097 )
+        bufsz = 4096;
+    else
+        bufsz = (filesize - (filesize % 2048))>>2;
+
+    /* open output file for buffered I/O */
+    FILE* out_fp = outfile_buffered(outfile, bufsz, &bufptr);
+
+    if ( mode == ENCRYPT )
+        generate_subkeys_encrypt(key, subkey);
+    else
+        generate_subkeys_decrypt(key, subkey);
+
+    while (des_readblock(infile, &input)>0)
     {
-        do_des( input, &output, key, salt, mode ); 
+        do_des( input, &output, subkey, salt, mode ); 
         if ( mode == ENCRYPT )
             salt = output;
         else
             salt = input;
 
-        des_writeblock(out_fd, output);
+        des_writeblock_buffered(out_fp, output);
     }
 
     if (mode == ENCRYPT && pad_full_block)
     {
-        input = 0x0808080808080808LL;
-        do_des( input, &output, key, salt, mode ); 
-        des_writeblock(out_fd, output);
+        input = 0x0808080808080808ULL;
+        do_des( input, &output, subkey, salt, mode ); 
+        des_writeblock_buffered(out_fp, output);
     }
 
     if (mode == DECRYPT)
     {
+        fflush(out_fp);
+        closefile_buffered(out_fp, (void**)&bufptr);
+
         /* remove padding */
-        size_t how_much = (size_t)(output & 0x00000000000000FFLL);
+        size_t how_much = (size_t)(output & 0x00000000000000FFULL);
         size_t newsize = filesize-how_much;
-        ftruncate(out_fd, newsize);
+        truncate(out, newsize);
     }
+    else
+    {
+        closefile_buffered(out_fp, (void**)&bufptr);
+    }
+
+    closefile(infile);
 }
 
 /* 
  * Perform 3DES on files
- * Paramters: in_fd - input file descriptor
- *            out_fd - output file descriptor
+ * Paramters: in - input file name
+ *            out - output file name
  *            key - 3DES key array of 3 keys
  *            salt - the salt (for CBC)
  *            mode (encrypt/decrypt)
  *
  * Return: void
  */
-void tripledes_file( int in_fd, 
-               int out_fd,
-               uint64_t key[],
-               uint64_t salt,
-               des_mode_t mode )
+void tripledes_file( const char* const in, 
+                     const char* const out,
+                     uint64_t key[],
+                     uint64_t salt,
+                     des_mode_t mode )
 {
     bool pad_full_block = false;
     uint64_t input, output;
+    uint64_t subkey[3][16];
 
-    size_t filesize = lseek(in_fd, 0L, SEEK_END);
-    lseek (in_fd, 0L, SEEK_SET);
+    int infile = openinfile(in);
+    int outfile = openoutfile(out);
+
+    size_t filesize = lseek(infile, 0L, SEEK_END);
+    lseek (infile, 0L, SEEK_SET);
 
     /* PKCS #5/#7 padding */
     if ( mode == ENCRYPT)
@@ -459,30 +513,53 @@ void tripledes_file( int in_fd,
         }
     }
 
-    while (des_readblock(in_fd, &input)>0)
+    char* bufptr;
+    size_t bufsz;
+
+    /* make reasonably size, page-aligned output buffer */
+    if ( filesize < 4097 )
+        bufsz = 4096;
+    else
+        bufsz = (filesize - (filesize % 2048))>>2;
+
+    /* open output file for buffered I/O */
+    FILE* out_fp = outfile_buffered(outfile, bufsz, &bufptr);
+
+    generate_subkeys_3des(key, subkey, mode);
+
+    while (des_readblock(infile, &input)>0)
     {
-        do_3des( input, &output, key, salt, mode ); 
+        do_3des( input, &output, subkey, salt, mode ); 
         if ( mode == ENCRYPT )
             salt = output;
         else
             salt = input;
 
-        des_writeblock(out_fd, output);
+        des_writeblock_buffered(out_fp, output);
     }
 
     if ( (mode == ENCRYPT) && pad_full_block )
     {
-        input = 0x0808080808080808LL;
-        do_3des( input, &output, key, salt, mode ); 
-        des_writeblock(out_fd, output);
+        input = 0x0808080808080808ULL;
+        do_3des( input, &output, subkey, salt, mode ); 
+        des_writeblock_buffered(out_fp, output);
     }
 
-    if (mode == DECRYPT )
+    if (mode == DECRYPT)
     {
+        fflush(out_fp);
+        closefile_buffered(out_fp, (void**)&bufptr);
+
         /* remove padding */
-        size_t how_much = (size_t)(output & 0x00000000000000FFLL);
+        size_t how_much = (size_t)(output & 0x00000000000000FFULL);
         size_t newsize = filesize-how_much;
-        ftruncate(out_fd, newsize);
+        truncate(out, newsize);
     }
+    else
+    {
+        closefile_buffered(out_fp, (void**)&bufptr);
+    }
+
+    closefile(infile);
 }
 
