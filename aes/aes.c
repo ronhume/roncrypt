@@ -246,7 +246,7 @@ static void mixcolumns ( uint32_t state[4] )
     transpose(tmp_long,state);
 }
 
-void aes_encrypt_block ( uint32_t input[4], 
+static void aes_encrypt_block ( uint32_t input[4], 
                          uint32_t output[4],
                          uint32_t key[],
                          key_size_t keysize )
@@ -284,9 +284,55 @@ void aes_encrypt_block ( uint32_t input[4],
     transpose(state,output);
 }
 
+static void aes_encrypt_block_cbc ( uint32_t input[4], 
+                             uint32_t output[4],
+                             uint32_t salt[4],
+                             uint32_t key[],
+                             key_size_t keysize )
+{
+    uint32_t data[4];
+    data[0] = input[0] ^ salt[0];
+    data[1] = input[1] ^ salt[1];
+    data[2] = input[2] ^ salt[2];
+    data[3] = input[3] ^ salt[3];
+
+    aes_encrypt_block(data, output, key, keysize);
+}
+
+void aes (uint32_t *input, 
+          uint32_t *output,
+          size_t    length,
+          uint32_t  key[],
+          uint32_t  salt[4],
+          key_size_t keysize)
+{    
+    /* generate subkeys here? XXXX */
+
+    for (size_t i = 0; i<length; i+=4)
+    {
+        aes_encrypt_block_cbc(&(input[i]), 
+                              &(output[i]), 
+                                salt, 
+                                key, 
+                                keysize);
+
+        salt[0] = output[i];
+        salt[1] = output[i+1];
+        salt[2] = output[i+2];
+        salt[3] = output[i+3];
+    }
+}
+
 int main ()
 {
     int i;
+
+    uint32_t salt[4] = {
+                          0xFFFEFDFC,
+                          0xFBFAF9F8,
+                          0xF7F6F5F4,
+                          0xF3F2F1F0
+                       };
 
     uint32_t key[3][8] = { 
                         { 0x01010101UL,
@@ -309,6 +355,25 @@ int main ()
                           0x01010101UL }
                      };
 
+    uint32_t data2[8] = {
+                          0x01020304,
+                          0x05060708,
+                          0x090A0B0C,
+                          0x0D0E0F10,
+                          0x01020304,
+                          0x05060708,
+                          0x090A0B0C,
+                          0x0D0E0F10
+                       };
+
+    uint32_t output2 [8] = {0};
+    
+    aes(data2, output2, 8, key[0], salt, KEY_128);
+
+    for ( i = 0; i < 8; i++ )
+        printf ( "OUT[%d]: 0x%08X\n", i, output2[i]);
+
+#if 0
     uint32_t data[4] = {
                           0x01020304,
                           0x05060708,
@@ -317,7 +382,7 @@ int main ()
                        };
 
     uint32_t output [4] = {0};
-    
+
     for ( i = 0; i < 4; i++ )
         printf ( "DATA[%d]: 0x%08X\n", i, data[i]);
 
@@ -337,7 +402,6 @@ int main ()
         printf ( "OUT[%d]: 0x%08X\n", i, output[i]);
 
 
-#if 0
     uint32_t subkeys[60];
 
     for ( i = 0; i < 60; i++ )
