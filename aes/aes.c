@@ -7,7 +7,9 @@
  */
 
 #include "common.h"
+#include "aes.h"
 #include "aes_tables.h"
+#include "fileio.h"
 
 #define WORD_MASK 0x00000000FFFFFFFFULL;
 
@@ -323,6 +325,94 @@ void aes (uint32_t *input,
     }
 }
 
+void aes_file( const char* const in,
+               const char* const out,
+               uint32_t key[],
+               uint32_t salt[4],
+               key_size_t keysize,
+               aes_mode_t mode)
+{
+    bool pad_full_block = false;
+    uint32_t input[4];
+    uint32_t output[4];
+    
+    int infile = openinfile(in);
+    int outfile = openoutfile(out);
+
+    size_t filesize = lseek(infile, 0L, SEEK_END);
+    lseek (infile, 0L, SEEK_SET);
+
+    /* PKCS #5/#7 padding */
+    if (mode == ENCRYPT)
+    {
+        if (!(filesize % AES_BLKSZ ))
+        {
+            pad_full_block = true;
+            filesize+=AES_BLKSZ;
+        }
+        else
+        {
+            filesize+=(AES_BLKSZ-(filesize%AES_BLKSZ));
+        }
+    }
+
+    char* bufptr;
+    size_t bufsz;
+
+    /* make reasonably sized, page-aligned output buffer */
+    if ( filesize < 4097 )
+        bufsz = 4096;
+    else
+        bufsz = (filesize - (filesize % 2048))>>2;
+
+    /* open output file for buffered I/O */
+    FILE* out_fp = outfile_buffered(outfile, bufsz, &bufptr);
+
+    /* XXXX: generate subkeys here? */
+
+    while(aes_readblock(infile, input)>0)
+    {
+        aes_encrypt_block_cbc(input,output, salt, key, keysize);
+        if ( mode == ENCRYPT )
+        {
+            salt[0] = output[0];
+            salt[1] = output[1];
+            salt[2] = output[2];
+            salt[3] = output[3];
+        }
+        else
+        {
+            salt[0] = input[0];
+            salt[1] = input[1];
+            salt[2] = input[2];
+            salt[3] = input[3];
+        }
+
+        aes_writeblock_buffered(out_fp, output);
+    }
+
+    if (mode == ENCRYPT && pad_full_block)
+    {
+        input[0] = 0x10101010UL;
+        input[1] = 0x10101010UL;
+        input[2] = 0x10101010UL;
+        input[3] = 0x10101010UL;
+        aes_encrypt_block_cbc(input, output, salt, key, keysize);
+        aes_writeblock_buffered(out_fp, output);
+    }
+
+    if ( mode == DECRYPT )
+    {
+        /* TODO:XXXX */
+    }
+    else
+    {
+        closefile_buffered(out_fp, (void**)&bufptr);
+    }
+
+    closefile(infile);
+}
+
 int main ()
 {
     int i;
@@ -355,6 +445,13 @@ int main ()
                           0x01010101UL }
                      };
 
+    aes_file( "./testfile.dat",
+              "./enc.aes128",
+               key[0],
+               salt,
+               KEY_128,
+               ENCRYPT);
+#if 0
     uint32_t data2[8] = {
                           0x01020304,
                           0x05060708,
@@ -372,6 +469,7 @@ int main ()
 
     for ( i = 0; i < 8; i++ )
         printf ( "OUT[%d]: 0x%08X\n", i, output2[i]);
+#endif
 
 #if 0
     uint32_t data[4] = {
