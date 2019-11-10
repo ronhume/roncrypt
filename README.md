@@ -76,4 +76,4 @@ Performs 3DES operation on an input file, and puts result in output file, using 
 * __tripledes_encrypt__
 * __tripledes_decrypt__
 ### OpenSSL Interoperability
-Use procedures outlined in __tests/testscript.txt__ to demonstrate interoperability with OpenSSL. Or, use testit.sh to demonstrate performance and compatibility.
+Use procedures outlined in __tests/testscript.txt__ to demonstrate interoperability with OpenSSL. Or, use __testit.sh__ to demonstrate performance and compatibility.
