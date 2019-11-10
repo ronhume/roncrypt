@@ -1,0 +1,4 @@
+get one block AES working
+get CBC working
+get fileio working
+test openssl compatibility
