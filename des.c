@@ -191,13 +191,13 @@ static void generate_subkeys_3des(
     if ( mode == ENCRYPT )
     {
         generate_subkeys_encrypt(key[0], subkey[0]);
-        generate_subkeys_encrypt(key[1], subkey[1]);
+        generate_subkeys_decrypt(key[1], subkey[1]);
         generate_subkeys_encrypt(key[2], subkey[2]);
     }
     else
     {
         generate_subkeys_decrypt(key[0], subkey[0]);
-        generate_subkeys_decrypt(key[1], subkey[1]);
+        generate_subkeys_encrypt(key[1], subkey[1]);
         generate_subkeys_decrypt(key[2], subkey[2]);
     }
 }

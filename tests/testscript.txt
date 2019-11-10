@@ -30,8 +30,8 @@ md5 dec.3des
 OpenSSL:
 encrypt with des_encrypt and tripledes_encrypt
 decrypt with OpenSSL:
-openssl enc -d -des -K 70617373776F7264 -iv 696E697469616C7A -out dec_openssl.des -in enc.des 
-openssl enc -d -des3 -K 7477656E7479666F7572636861726163746572696E707574 -iv 696E697469616C7A -out dec_openssl.3des -in enc.3des 
+openssl enc -d -des -K 0102030405060708 -iv FFFEFDFCFBFAF9F8 -out dec_openssl.des -in enc.des
+openssl enc -d -des3 -K 0102030405060708090A0B0C0D0E0F101112131415161718 -iv FFFEFDFCFBFAF9F8 -out dec_openssl.3des -in enc.3des
 
 md5 testfile.dat
 md5 dec_openssl.des
@@ -39,8 +39,8 @@ md5 dec_openssl.3des
 
 ========> 2 <===========
 encrypt with OpenSSL:
-openssl enc -des -K 70617373776F7264 -iv 696E697469616C7A -out enc.des -in testfile.dat
-enc -des3 -K 7477656E7479666F7572636861726163746572696E707574 -iv 696E697469616C7A -out enc.3des -in testfile.dat
+openssl enc -des -K 0102030405060708 -iv FFFEFDFCFBFAF9F8 -out enc.des -in testfile.dat
+openssl enc -des3 -K 0102030405060708090A0B0C0D0E0F101112131415161718 -iv FFFEFDFCFBFAF9F8 -out enc.3des -in testfile.dat
 
 decrypt with des_decrypt and tripledes_decrypt
 
@@ -48,10 +48,6 @@ md5 testfile.dat
 md5 dec.des
 md5 dec.3des
 
-//uint64_t key = 0x70617373776F7264;
-    uint64_t key =   0x0102030405060708;
-    //uint64_t salt = 0x696E697469616C7A;
-    uint64_t salt =   0xFFFEFDFCFBFAF9F8;
 openssl enc -d -des -K 0102030405060708 -iv FFFEFDFCFBFAF9F8 -out dec_openssl.des -in enc.des 
 
 1G file 
@@ -93,34 +89,75 @@ user	1m37.938s
 sys	1m1.170s
 
 ====================
-full test buffered writes:
-$ dd if=/dev/urandom of=testfile.dat bs=1024m count=1
+full test buffered writes (1G):
 
-1+0 records in
-1+0 records out
-1073741824 bytes transferred in 35.884919 secs (29921813 bytes/sec)
+DES Encrypt
 
-$ time ./des_encrypt
+real	2m38.627s
+user	1m37.061s
+sys	1m0.512s
 
-real	2m40.516s
-user	1m38.066s
-sys	1m1.390s
+DES Decrypt
 
-$ time ./tripledes_encrypt
+real	2m39.490s
+user	1m37.854s
+sys	1m0.631s
 
-real	4m48.193s
-user	3m45.074s
-sys	1m2.118s
+3DES Encrypt
 
-$ time ./des_decrypt 
+real	4m43.742s
+user	3m41.879s
+sys	1m0.954s
 
-real	2m41.127s
-user	1m37.906s
-sys	1m2.095s
+3DES Decrypt
 
-$ time ./tripledes_decrypt 
+real	4m47.421s
+user	3m42.407s
+sys	1m3.904s
 
-real	4m50.545s
-user	3m45.472s
-sys	1m3.521s
+OpenSSL DES Decrypt
+
+real	0m14.099s
+user	0m12.570s
+sys	0m1.472s
+
+OpenSSL 3DES Decrypt
+
+real	0m35.272s
+user	0m33.689s
+sys	0m1.441s
+
+MD5 (testfile.dat) = 7afe4dbe2c1bfa1cfc4a453dd5982186
+MD5 (dec.des) = 7afe4dbe2c1bfa1cfc4a453dd5982186
+MD5 (dec.3des) = 7afe4dbe2c1bfa1cfc4a453dd5982186
+MD5 (dec_openssl.des) = 7afe4dbe2c1bfa1cfc4a453dd5982186
+MD5 (dec_openssl.3des) = 7afe4dbe2c1bfa1cfc4a453dd5982186
+
+OpenSSL DES Encrypt
+
+real	0m14.449s
+user	0m12.961s
+sys	0m1.424s
+
+OpenSSL 3DES Encrypt
+
+real	0m35.756s
+user	0m34.225s
+sys	0m1.407s
+
+DES Decrypt
+
+real	2m38.608s
+user	1m37.097s
+sys	1m0.270s
+
+3DES Decrypt
+
+real	4m46.317s
+user	3m42.239s
+sys	1m2.822s
+
+MD5 (testfile.dat) = 7afe4dbe2c1bfa1cfc4a453dd5982186
+MD5 (dec.des) = 7afe4dbe2c1bfa1cfc4a453dd5982186
+MD5 (dec.3des) = 7afe4dbe2c1bfa1cfc4a453dd5982186
 
