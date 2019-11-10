@@ -1,4 +1,4 @@
-get one block AES working
-get CBC working
-get fileio working
+get fileio working - TEST this.
 test openssl compatibility
+
+get DECRYPT working... inverse mixcols is gonna hurt my head.
