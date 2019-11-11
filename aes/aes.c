@@ -409,7 +409,7 @@ static void aes_encrypt_block ( uint32_t input[4],
         //print_array("STATE-SUB", state);
         shiftrows(state, false);
         //print_array("SHIFTROWS", state);
-        mixcolumns(state); 
+        mixcolumns(state, false); 
         //print_array("MIXCOLUMNS", state);
         xor_round_key(state,&(subkeys[(round+1)<<2]));
     }
