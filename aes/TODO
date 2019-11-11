@@ -1,7 +1,6 @@
 fix 192 & 256 bit ENCRYPT
 
-and inv_mixcol
-get DECRYPT working... inverse mixcols is gonna hurt my head.
+get DECRYPT working... wire into aes and aes_file
 
 test openssl compatibility:
     ENCRYPT works

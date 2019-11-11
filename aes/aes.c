@@ -312,7 +312,7 @@ static uint8_t dot_product(uint8_t x, uint8_t y)
  *
  * Return: void
  */
-static void mixcolumns ( uint32_t state[4] )
+static void mixcolumns ( uint32_t state[4], bool invert )
 {
     uint8_t array[4][4];
     uint8_t tmp[4][4];
@@ -320,27 +320,55 @@ static void mixcolumns ( uint32_t state[4] )
     
     make_byte_array(state,array);
 
-    for ( uint8_t i = 0; i < 4; i++ )
+    if ( invert )
     {
-        tmp[i][0] = dot_product( 2, array[0][i] ) ^
-                    dot_product( 3, array[1][i] ) ^
-                                    array[2][i]   ^
-                                    array[3][i];
+        for ( uint8_t i = 0; i < 4; i++ )
+        {
+            tmp[i][0] = dot_product( 0x0E, array[0][i] ) ^
+                        dot_product( 0x0B, array[1][i] ) ^
+                        dot_product( 0x0D, array[2][i] ) ^
+                        dot_product( 0x09, array[3][i] ) ;
 
-        tmp[i][1] =                 array[0][i]   ^
-                    dot_product( 2, array[1][i] ) ^
-                    dot_product( 3, array[2][i] ) ^
-                                    array[3][i];
+            tmp[i][1] = dot_product( 0x09, array[0][i] ) ^
+                        dot_product( 0x0E, array[1][i] ) ^
+                        dot_product( 0x0B, array[2][i] ) ^
+                        dot_product( 0x0D, array[3][i] ) ;
 
-        tmp[i][2] =                 array[0][i]   ^
-                                    array[1][i]   ^
-                    dot_product( 2, array[2][i] ) ^
-                    dot_product( 3, array[3][i] );
+            tmp[i][2] = dot_product( 0x0D, array[0][i] ) ^
+                        dot_product( 0x09, array[1][i] ) ^
+                        dot_product( 0x0E, array[2][i] ) ^
+                        dot_product( 0x0B, array[3][i] ) ;
 
-        tmp[i][3] = dot_product( 3, array[0][i] ) ^
-                                    array[1][i]   ^
-                                    array[2][i]   ^
-                    dot_product( 2, array[3][i] );
+            tmp[i][3] = dot_product( 0x0B, array[0][i] ) ^
+                        dot_product( 0x0D, array[1][i] ) ^
+                        dot_product( 0x09, array[2][i] ) ^
+                        dot_product( 0x0E, array[3][i] ) ;
+        }
+    }
+    else
+    {
+        for ( uint8_t i = 0; i < 4; i++ )
+        {
+            tmp[i][0] = dot_product( 2, array[0][i] ) ^
+                        dot_product( 3, array[1][i] ) ^
+                                        array[2][i]   ^
+                                        array[3][i];
+
+            tmp[i][1] =                 array[0][i]   ^
+                        dot_product( 2, array[1][i] ) ^
+                        dot_product( 3, array[2][i] ) ^
+                                        array[3][i];
+
+            tmp[i][2] =                 array[0][i]   ^
+                                        array[1][i]   ^
+                        dot_product( 2, array[2][i] ) ^
+                        dot_product( 3, array[3][i] );
+
+            tmp[i][3] = dot_product( 3, array[0][i] ) ^
+                                        array[1][i]   ^
+                                        array[2][i]   ^
+                        dot_product( 2, array[3][i] );
+        }
     }
 
     make_long_array ( tmp, tmp_long );
