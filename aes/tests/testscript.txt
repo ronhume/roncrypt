@@ -18,4 +18,6 @@ md5 all ***TODO
 
 openssl:
 openssl enc -aes-128-cbc -K 01010101010101010101010101010101 -iv fffefdfcfbfaf9f8f7f6f5f4f3f2f1f0 -out enc_openssl.aes128 -in testfile.dat  
+openssl enc -aes-192-cbc -K 010101010101010101010101010101010101010101010101 -iv fffefdfcfbfaf9f8f7f6f5f4f3f2f1f0 -out enc_openssl.aes192 -in testfile.dat  
+openssl enc -aes-256-cbc -K 0101010101010101010101010101010101010101010101010101010101010101 -iv fffefdfcfbfaf9f8f7f6f5f4f3f2f1f0 -out enc_openssl.aes256 -in testfile.dat 
 
