@@ -114,12 +114,22 @@ static void make_long_array ( uint8_t input[4][4], uint32_t output[4] )
     }
 }
 
-static void substitute ( uint32_t *data )
+static void substitute ( uint32_t *data, bool invert )
 {
-    *data = aes_sbox[ ((*data)     >>24)]<<24 |
-            aes_sbox[(((*data)<< 8)>>24)]<<16 |
-            aes_sbox[(((*data)<<16)>>24)]<< 8 |
-            aes_sbox[(((*data)<<24)>>24)]     ;
+    if ( invert )
+    {
+        *data = aes_inv_sbox[ ((*data)     >>24)]<<24 |
+                aes_inv_sbox[(((*data)<< 8)>>24)]<<16 |
+                aes_inv_sbox[(((*data)<<16)>>24)]<< 8 |
+                aes_inv_sbox[(((*data)<<24)>>24)]     ;
+    }
+    else
+    {
+        *data = aes_sbox[ ((*data)     >>24)]<<24 |
+                aes_sbox[(((*data)<< 8)>>24)]<<16 |
+                aes_sbox[(((*data)<<16)>>24)]<< 8 |
+                aes_sbox[(((*data)<<24)>>24)]     ;
+    }
 }
 
 static void aes_key_schedule ( uint32_t key[],
@@ -144,7 +154,7 @@ static void aes_key_schedule ( uint32_t key[],
         if ( !( i % num_keys ) )
         {
             rol8       (&(subkeys[i]));
-            substitute (&(subkeys[i]));
+            substitute (&(subkeys[i]),false);
         
             /* reset round constant */
             if ( !(i % 36) )
@@ -157,7 +167,7 @@ static void aes_key_schedule ( uint32_t key[],
         }
         else if ( ( keysize == KEY_256 ) && ( i % num_keys ) == 4)
         {
-            substitute (&(subkeys[i]));
+            substitute (&(subkeys[i]),false);
         }
 
         subkeys[i] ^= subkeys[i-num_keys];
@@ -176,20 +186,32 @@ static void xor_round_key ( uint32_t input[4], uint32_t subkey[4] )
     input[3] ^= tmp_subkey[3];
 }
 
-static void state_substitute ( uint32_t state[4] )
+static void state_substitute ( uint32_t state[4], bool invert )
 {
     for ( unsigned int i = 0; i < 4; i++ )
-        substitute(&state[i]);
+        substitute(&state[i],invert);
 }
 
-static void shiftrows ( uint32_t state[4] )
+static void shiftrows ( uint32_t state[4], bool invert )
 {
-    rol8(&state[1]);
-    rol8(&state[2]);
-    rol8(&state[2]);
-    rol8(&state[3]);
-    rol8(&state[3]);
-    rol8(&state[3]);
+    if ( invert)
+    {
+        rol8(&state[1]);
+        rol8(&state[1]);
+        rol8(&state[1]);
+        rol8(&state[2]);
+        rol8(&state[2]);
+        rol8(&state[3]);
+    }
+    else
+    {
+        rol8(&state[1]);
+        rol8(&state[2]);
+        rol8(&state[2]);
+        rol8(&state[3]);
+        rol8(&state[3]);
+        rol8(&state[3]);
+    }
 }
 
 static uint8_t dot_product(uint8_t x, uint8_t y)
@@ -264,18 +286,18 @@ static void aes_encrypt_block ( uint32_t input[4],
 
     for ( size_t round = 0; round<(num_rounds-1); round++ )
     {
-        state_substitute(state);
+        state_substitute(state, false);
         //print_array("STATE-SUB", state);
-        shiftrows(state);
+        shiftrows(state, false);
         //print_array("SHIFTROWS", state);
         mixcolumns(state); 
         //print_array("MIXCOLUMNS", state);
         xor_round_key(state,&(subkeys[(round+1)<<2]));
     }
 
-    state_substitute(state);
+    state_substitute(state, false);
     //print_array("STATE-SUB", state);
-    shiftrows(state);
+    shiftrows(state, false);
     //print_array("SHIFTROWS", state);
     xor_round_key(state,&(subkeys[(num_rounds)<<2]));
 

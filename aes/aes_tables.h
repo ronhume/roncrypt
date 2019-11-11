@@ -45,4 +45,8 @@ static const uint8_t aes_sbox[] = {
    0x41, 0x99, 0x2d, 0x0f, 0xb0, 0x54, 0xbb, 0x16
 };
 
+static const uint8_t aes_inv_sbox[] = {
+    /*XXXX: TODO: fill in values.*/
+};
+
 #endif // _AES_TABLES_H

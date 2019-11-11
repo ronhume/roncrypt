@@ -1,4 +1,6 @@
 add file and function headers to aes.c
+add inv_sbox to tables
+and inv_mixcol
 
 test openssl compatibility:
     ENCRYPT works
