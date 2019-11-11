@@ -1,8 +1,7 @@
-add file and function headers to aes.c
-add inv_sbox to tables
 and inv_mixcol
+get DECRYPT working... inverse mixcols is gonna hurt my head.
 
 test openssl compatibility:
     ENCRYPT works
+    DECRYPT - ?
 
-get DECRYPT working... inverse mixcols is gonna hurt my head.

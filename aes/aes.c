@@ -13,6 +13,12 @@
 
 #define WORD_MASK 0x00000000FFFFFFFFULL;
 
+/* 
+ * Get number of words in key
+ * Parameters: size - key size enum
+ *
+ * Return: number of words in key
+ */
 static uint32_t get_key_words ( key_size_t size )
 {
     uint32_t num_keys = 0;
@@ -59,6 +65,12 @@ static void print_byte_array(
 }
 #endif
 
+/* 
+ * Rotate word left 8
+ * Parameters: data - pointer to data
+ *
+ * Return: void
+ */
 static void rol8 ( uint32_t *data )
 {
     register uint64_t tmp_data = (*data);
@@ -69,6 +81,14 @@ static void rol8 ( uint32_t *data )
     *data = (uint32_t)tmp_data;
 }
 
+/* 
+ * Transpose 4x4 matix of bytes passed 
+ * as 4 32bit words
+ * Parameters: input - word array
+ *             output - word array
+ *
+ * Return: void
+ */
 static void transpose ( uint32_t input[4], uint32_t output[4] )
 {
     output[0] =  (input[0] & 0xFF000000UL)      ;
@@ -92,6 +112,13 @@ static void transpose ( uint32_t input[4], uint32_t output[4] )
     output[3] |= (input[3] & 0x000000FFUL)      ;
 }
 
+/* 
+ * Convert 4 word array into 4x4 byte array
+ * Parameters: input - word array
+ *             output - byte array
+ *
+ * Return: void
+ */
 static void make_byte_array ( uint32_t input[4], uint8_t output[4][4] )
 {
     for ( uint8_t i = 0; i < 4; i++ )
@@ -103,6 +130,13 @@ static void make_byte_array ( uint32_t input[4], uint8_t output[4][4] )
     }
 }
 
+/* 
+ * Convert 4x4 byte array into array of words
+ * Parameters: input - byte array
+ *             output - word array
+ *
+ * Return: void
+ */
 static void make_long_array ( uint8_t input[4][4], uint32_t output[4] )
 {
     for ( uint8_t i = 0; i < 4; i++ )
@@ -114,6 +148,13 @@ static void make_long_array ( uint8_t input[4][4], uint32_t output[4] )
     }
 }
 
+/* 
+ * aes SBOX substitution
+ * Parameters: data - pointer to word
+ *             invert - which sbox table to use.
+ *
+ * Return: void
+ */
 static void substitute ( uint32_t *data, bool invert )
 {
     if ( invert )
@@ -132,6 +173,14 @@ static void substitute ( uint32_t *data, bool invert )
     }
 }
 
+/* 
+ * Generate AES key schedule
+ * Parameters: key - key data array
+ *             subkeys - subkey array data (out param)
+ *             keysize - how much key data to use
+ *
+ * Return: void
+ */
 static void aes_key_schedule ( uint32_t key[],
                                uint32_t subkeys[],
                                key_size_t keysize )
@@ -174,6 +223,13 @@ static void aes_key_schedule ( uint32_t key[],
     }
 }
 
+/* 
+ * XOR round key into data
+ * Parameters: input - word array
+ *             subkey - subkey array material
+ *
+ * Return: void
+ */
 static void xor_round_key ( uint32_t input[4], uint32_t subkey[4] )
 {
     uint32_t tmp_subkey[4] = {0};
@@ -186,12 +242,26 @@ static void xor_round_key ( uint32_t input[4], uint32_t subkey[4] )
     input[3] ^= tmp_subkey[3];
 }
 
+/* 
+ * State array substituion
+ * Parameters: state - state array
+ *             invert - which direction
+ *
+ * Return: void
+ */
 static void state_substitute ( uint32_t state[4], bool invert )
 {
     for ( unsigned int i = 0; i < 4; i++ )
         substitute(&state[i],invert);
 }
 
+/* 
+ * ShiftRows AES operation
+ * Parameters: state - state array
+ *             invert - which direction
+ *
+ * Return: void
+ */
 static void shiftrows ( uint32_t state[4], bool invert )
 {
     if ( invert)
@@ -214,6 +284,12 @@ static void shiftrows ( uint32_t state[4], bool invert )
     }
 }
 
+/* 
+ * Calculate AES' weird dot_product
+ * Parameters: x,y
+ *
+ * Return: dot_product
+ */
 static uint8_t dot_product(uint8_t x, uint8_t y)
 {
     uint8_t mask = 0x01;
@@ -230,6 +306,12 @@ static uint8_t dot_product(uint8_t x, uint8_t y)
     return ( dot_product );
 }
 
+/* 
+ * AES MixColumns operation
+ * Parameters: state - state array
+ *
+ * Return: void
+ */
 static void mixcolumns ( uint32_t state[4] )
 {
     uint8_t array[4][4];
@@ -266,6 +348,15 @@ static void mixcolumns ( uint32_t state[4] )
     transpose(tmp_long,state);
 }
 
+/* 
+ * AES encrypt one block
+ * Parameters: input - data input array
+ *             output - data output array
+ *             key - key material
+ *             keysize - key size enum
+ *
+ * Return: void
+ */
 static void aes_encrypt_block ( uint32_t input[4], 
                          uint32_t output[4],
                          uint32_t key[],
@@ -304,6 +395,17 @@ static void aes_encrypt_block ( uint32_t input[4],
     transpose(state,output);
 }
 
+/* 
+ * AES encrypt one block with salt.  This
+ * method is to support CBC mode.
+ * Parameters: input - input data array
+ *             output - output data array
+ *             salt - iv for CBC
+ *             key - key material array
+ *             keysize - key size enum
+ *
+ * Return: void
+ */
 static void aes_encrypt_block_cbc ( uint32_t input[4], 
                              uint32_t output[4],
                              uint32_t salt[4],
@@ -319,6 +421,17 @@ static void aes_encrypt_block_cbc ( uint32_t input[4],
     aes_encrypt_block(data, output, key, keysize);
 }
 
+/* 
+ * Do AES on a buffer
+ * Parameters: input - data pointer
+ *             output - output data pointer
+ *             length - length of input
+ *             key - key array
+ *             salt - iv for CBC
+ *             keysize - key size enum
+ *
+ * Return: void
+ */
 void aes (uint32_t *input, 
           uint32_t *output,
           size_t    length,
@@ -343,6 +456,17 @@ void aes (uint32_t *input,
     }
 }
 
+/* 
+ * AES for files
+ * Parameters: in - filename of input
+ *             out - filename of output file
+ *             key - key array
+ *             salt - IV for CBC
+ *             keysize - key size enum
+ *             mode - encrypt / decrypt
+ *
+ * Return: void
+ */
 void aes_file( const char* const in,
                const char* const out,
                uint32_t key[],
