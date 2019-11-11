@@ -1,3 +1,5 @@
+add file and function headers to aes.c
+
 test openssl compatibility:
     ENCRYPT works
 

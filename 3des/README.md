@@ -23,6 +23,10 @@ void des_writeblock(int fd, uint64_t block)
 ```
 Writes out a DES-sized block.
 ```C
+void des_writeblock_buffered(FILE* fd, uint64_t block)
+```
+Writes out a DES-sized block using buffered I/O.
+```C
 void closefile(int fd)
 ```
 Closes the open file.
