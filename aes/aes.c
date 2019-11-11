@@ -13,12 +13,6 @@
 
 #define WORD_MASK 0x00000000FFFFFFFFULL;
 
-typedef enum {
-    KEY_128,
-    KEY_192,
-    KEY_256
-} key_size_t;
-
 static uint32_t get_key_words ( key_size_t size )
 {
     uint32_t num_keys = 0;
@@ -39,6 +33,7 @@ static uint32_t get_key_words ( key_size_t size )
     return num_keys;
 }
 
+#if 0
 static void print_array(const char* const string, uint32_t array[4])
 {
     for(int i = 0; i<4; i++)
@@ -62,6 +57,7 @@ static void print_byte_array(
           array[i][3]);
   }
 }
+#endif
 
 static void rol8 ( uint32_t *data )
 {
@@ -413,128 +409,3 @@ void aes_file( const char* const in,
     closefile(infile);
 }
 
-int main ()
-{
-    int i;
-
-    uint32_t salt[4] = {
-                          0xFFFEFDFC,
-                          0xFBFAF9F8,
-                          0xF7F6F5F4,
-                          0xF3F2F1F0
-                       };
-
-    uint32_t key[3][8] = { 
-                        { 0x01010101UL,
-                          0x01010101UL,
-                          0x01010101UL,
-                          0x01010101UL },
-                        { 0x01010101UL,
-                          0x01010101UL,
-                          0x01010101UL,
-                          0x01010101UL,
-                          0x01010101UL,
-                          0x01010101UL },
-                        { 0x01010101UL,
-                          0x01010101UL,
-                          0x01010101UL,
-                          0x01010101UL,
-                          0x01010101UL,
-                          0x01010101UL,
-                          0x01010101UL,
-                          0x01010101UL }
-                     };
-
-    aes_file( "./testfile.dat",
-              "./enc.aes128",
-               key[0],
-               salt,
-               KEY_128,
-               ENCRYPT);
-#if 0
-    uint32_t data2[8] = {
-                          0x01020304,
-                          0x05060708,
-                          0x090A0B0C,
-                          0x0D0E0F10,
-                          0x01020304,
-                          0x05060708,
-                          0x090A0B0C,
-                          0x0D0E0F10
-                       };
-
-    uint32_t output2 [8] = {0};
-    
-    aes(data2, output2, 8, key[0], salt, KEY_128);
-
-    for ( i = 0; i < 8; i++ )
-        printf ( "OUT[%d]: 0x%08X\n", i, output2[i]);
-#endif
-
-#if 0
-    uint32_t data[4] = {
-                          0x01020304,
-                          0x05060708,
-                          0x090A0B0C,
-                          0x0D0E0F10
-                       };
-
-    uint32_t output [4] = {0};
-
-    for ( i = 0; i < 4; i++ )
-        printf ( "DATA[%d]: 0x%08X\n", i, data[i]);
-
-    aes_encrypt_block(data, output, key[0], KEY_128);
-
-    for ( i = 0; i < 4; i++ )
-        printf ( "OUT[%d]: 0x%08X\n", i, output[i]);
-
-    aes_encrypt_block(data, output, key[1], KEY_192);
-
-    for ( i = 0; i < 4; i++ )
-        printf ( "OUT[%d]: 0x%08X\n", i, output[i]);
-
-    aes_encrypt_block(data, output, key[2], KEY_256);
-
-    for ( i = 0; i < 4; i++ )
-        printf ( "OUT[%d]: 0x%08X\n", i, output[i]);
-
-
-    uint32_t subkeys[60];
-
-    for ( i = 0; i < 60; i++ )
-        subkeys[i] = 0;
-
-    aes_key_schedule(key[0], subkeys, KEY_128);
-    for ( i = 0; i < 60; i++ )
-        printf ( "[%d]: 0x%08X\n", i, subkeys[i]);
-
-    for ( i = 0; i < 60; i++ )
-        subkeys[i] = 0;
-
-    aes_key_schedule(key[1], subkeys, KEY_192);
-    for ( i = 0; i < 60; i++ )
-        printf ( "[%d]: 0x%08X\n", i, subkeys[i]);
-
-    for ( i = 0; i < 60; i++ )
-        subkeys[i] = 0;
-
-    aes_key_schedule(key[2], subkeys, KEY_256);
-    for ( i = 0; i < 60; i++ )
-        printf ( "[%d]: 0x%08X\n", i, subkeys[i]);
-
-    uint32_t t[4] = { 0x01020304UL, 
-                      0x05060708UL, 
-                      0x090A0B0CUL,
-                      0x0D0E0F10UL };
-
-    uint32_t o[4] = {0};
-
-    for ( i = 0; i < 4; i++ )
-        printf ( "[%d]: 0x%08X\n", i, t[i]);
-
-    transpose(t,o);
-    for ( i = 0; i < 4; i++ )
-        printf ( "[%d]: 0x%08X\n", i, o[i]);
-#endif
-}

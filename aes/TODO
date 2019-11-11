@@ -1,4 +1,4 @@
-get fileio working - TEST this.
-test openssl compatibility
+test openssl compatibility:
+    ENCRYPT works
 
 get DECRYPT working... inverse mixcols is gonna hurt my head.

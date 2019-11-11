@@ -1,1 +1,4 @@
-write all tests for all key sizes.
+write encrypt testscript.
+write decrypt test driver
+write decrypt testscript.
+run tests.
