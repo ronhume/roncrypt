@@ -1,0 +1,21 @@
+to encrypt:
+create testfile.dat using dd
+
+aes_encrypt
+
+check file:
+enc.aes128
+enc.aes192
+enc.aes256
+
+to decrypt:
+TODO:aes_decrypt
+
+check files:
+****TODO
+
+md5 all ***TODO
+
+openssl:
+openssl enc -aes-128-cbc -K 01010101010101010101010101010101 -iv fffefdfcfbfaf9f8f7f6f5f4f3f2f1f0 -out enc_openssl.aes128 -in testfile.dat  
+
