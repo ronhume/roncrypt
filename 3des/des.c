@@ -15,7 +15,7 @@
 
 /* 
  * Generic permutation function.
- * Paramters: input, 
+ * Parameters: input, 
  *            output (out param), 
  *            table name, 
  *            number of bits
@@ -37,7 +37,7 @@ static void permutation( uint64_t input,
 
 /* 
  * Rotate 28-bit keys left, and combine output
- * Paramters: in_left_key (out param), 
+ * Parameters: in_left_key (out param), 
  *            in_right_key (out param), 
  *            out_key (out param)
  *
@@ -60,7 +60,7 @@ static void rol_28_key(uint64_t *in_left,
 
 /* 
  * Rotate 28-bit keys right, and combine output
- * Paramters: in_left_key (out param), 
+ * Parameters: in_left_key (out param), 
  *            in_right_key (out param), 
  *            out_key (out param)
  *
@@ -85,7 +85,7 @@ static void ror_28_key(uint64_t *in_left,
 
 /* 
  * S-BOX operation
- * Paramters: input
+ * Parameters: input
  *            output (out param)
  *
  * Return: void
@@ -116,7 +116,7 @@ static void do_sbox(uint64_t input, uint64_t *output)
 
 /* 
  * Generate DES subkeys for encryption
- * Paramters: key
+ * Parameters: key
  *            subkeys array (out param)
  *
  * Return: void
@@ -147,7 +147,7 @@ static void generate_subkeys_encrypt (
 
 /* 
  * Generate DES subkeys for decryption
- * Paramters: key
+ * Parameters: key
  *            subkeys array (out param)
  *
  * Return: void
@@ -177,7 +177,7 @@ static void generate_subkeys_decrypt (
 
 /* 
  * Generate subkeys from key for 3DES
- * Paramters: key - key array of 3 DES keys
+ * Parameters: key - key array of 3 DES keys
  *            subkey (out param) - 3 arrays of 16 subkeys
  *            mode (encrypt/decrypt)
  *
@@ -204,7 +204,7 @@ static void generate_subkeys_3des(
 
 /* 
  * Perform DES on one 64-bit block
- * Paramters: input - the data
+ * Parameters: input - the data
  *            output (out param)
  *            subkey - subkey array of 16 subkeys
  *            mode (encrypt/decrypt)
@@ -252,7 +252,7 @@ static void do_des_block (uint64_t input,
 
 /* 
  * Perform DES on one 64-bit block
- * Paramters: input - the data
+ * Parameters: input - the data
  *            output (out param)
  *            subkey - array of 16 subkeys
  *            salt - the salt (for CBC)
@@ -277,7 +277,7 @@ static void do_des (uint64_t input,
 
 /* 
  * Perform 3DES on one 64-bit block
- * Paramters: input - the data
+ * Parameters: input - the data
  *            output (out param)
  *            subkey - array of 3 16 subkey arrays
  *            salt - the salt (for CBC)
@@ -316,7 +316,7 @@ static void do_3des (uint64_t input,
 
 /* 
  * Perform DES on 64-bit array of blocks
- * Paramters: input - the data
+ * Parameters: input - the data
  *            output - encrypted blocks
  *            length - how much input
  *            key - DES key
@@ -350,7 +350,7 @@ void des( uint64_t *input,
 
 /* 
  * Perform 3DES on 64-bit array of blocks
- * Paramters: input - the data
+ * Parameters: input - the data
  *            output - encrypted blocks
  *            length - how much input
  *            key - 3DES key array of 3 keys
@@ -382,7 +382,7 @@ void tripledes( uint64_t *input,
 
 /* 
  * Perform DES on files
- * Paramters: in - input file name
+ * Parameters: in - input file name
  *            out - output file name
  *            key - DES key
  *            salt - the salt (for CBC)
@@ -475,7 +475,7 @@ void des_file( const char* const in,
 
 /* 
  * Perform 3DES on files
- * Paramters: in - input file name
+ * Parameters: in - input file name
  *            out - output file name
  *            key - 3DES key array of 3 keys
  *            salt - the salt (for CBC)
