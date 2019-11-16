@@ -1,3 +1,1 @@
-write encrypt testscript.
-write decrypt testscript.
-run tests.
+run timing tests.

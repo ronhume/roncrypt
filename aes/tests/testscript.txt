@@ -8,14 +8,29 @@ enc.aes128
 enc.aes256
 
 to decrypt:
-TODO:aes_decrypt
+aes_decrypt
 
 check files:
-****TODO
+dec.aes128
+dec.aes256
 
-md5 all ***TODO
+md5 testfile.dat
+md5 dec.aes128
+md5 dec.aes256
 
 openssl:
 openssl enc -aes-128-cbc -K 01010101010101010101010101010101 -iv fffefdfcfbfaf9f8f7f6f5f4f3f2f1f0 -out enc_openssl.aes128 -in testfile.dat  
 openssl enc -aes-256-cbc -K 0101010101010101010101010101010101010101010101010101010101010101 -iv fffefdfcfbfaf9f8f7f6f5f4f3f2f1f0 -out enc_openssl.aes256 -in testfile.dat 
+
+md5 enc.aes128
+md5 enc_openssl.aes128
+md5 enc.aes256
+md5 enc_openssl.aes256
+
+openssl enc -d -aes-128-cbc -K 01010101010101010101010101010101 -iv fffefdfcfbfaf9f8f7f6f5f4f3f2f1f0 -out dec_openssl.aes128 -in enc.aes128
+openssl enc -d -aes-256-cbc -K 0101010101010101010101010101010101010101010101010101010101010101 -iv fffefdfcfbfaf9f8f7f6f5f4f3f2f1f0 -out dec_openssl.aes256 -in enc.aes256
+
+md5 testfile.dat
+md5 dec_openssl.aes128
+md5 dec_openssl.aes256
 
