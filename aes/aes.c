@@ -391,10 +391,8 @@ static void aes_encrypt_block ( uint32_t input[4],
     uint32_t subkeys[60];
 
     transpose(input,state);
-    //print_array("TRANSPOSE", state);
 
     size_t num_rounds = get_key_words(keysize) + 6;
-    //printf("[%lu] ROUNDS\n", num_rounds);
 
     aes_key_schedule(key, subkeys, keysize);
 
@@ -403,18 +401,13 @@ static void aes_encrypt_block ( uint32_t input[4],
     for ( size_t round = 0; round<(num_rounds-1); round++ )
     {
         state_substitute(state, false);
-        //print_array("STATE-SUB", state);
         shiftrows(state, false);
-        //print_array("SHIFTROWS", state);
         mixcolumns(state, false); 
-        //print_array("MIXCOLUMNS", state);
         xor_round_key(state,&(subkeys[(round+1)<<2]));
     }
 
     state_substitute(state, false);
-    //print_array("STATE-SUB", state);
     shiftrows(state, false);
-    //print_array("SHIFTROWS", state);
     xor_round_key(state,&(subkeys[(num_rounds)<<2]));
 
     transpose(state,output);
@@ -438,10 +431,8 @@ static void aes_decrypt_block ( uint32_t input[4],
     uint32_t subkeys[60];
 
     transpose(input,state);
-    //print_array("TRANSPOSE", state);
 
     size_t num_rounds = get_key_words(keysize) + 6;
-    //printf("[%lu] ROUNDS\n", num_rounds);
 
     aes_key_schedule(key, subkeys, keysize);
 
@@ -450,17 +441,12 @@ static void aes_decrypt_block ( uint32_t input[4],
     for ( size_t round = num_rounds; round>1; round-- )
     {
         shiftrows(state, true);
-        //print_array("SHIFTROWS", state);
         state_substitute(state, true);
-        //print_array("STATE-SUB", state);
         xor_round_key(state,&(subkeys[(round-1)<<2]));
         mixcolumns(state, true); 
-        //print_array("MIXCOLUMNS", state);
     }
     shiftrows(state, true);
-    //print_array("SHIFTROWS", state);
     state_substitute(state, true);
-    //print_array("STATE-SUB", state);
     xor_round_key(state,&(subkeys[0]));
 
     transpose(state,output);
