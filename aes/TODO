@@ -1,4 +1,4 @@
-fix 192 & 256 bit ENCRYPT
+fix 256 bit ENCRYPT
 
 get DECRYPT working... wire into aes and aes_file
 

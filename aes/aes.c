@@ -28,9 +28,6 @@ static uint32_t get_key_words ( key_size_t size )
     case KEY_128:
         num_keys = 4;
         break;
-    case KEY_192:
-        num_keys = 6;
-        break;
     case KEY_256:
         num_keys = 8;
         break;

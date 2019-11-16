@@ -38,7 +38,7 @@ Closes the open file that has been set up for buffered I/O, and frees the associ
 #### AES APIs
 
 Mode is either __ENCRYPT__ or __DECRYPT__.
-Keysize is either __KEY_128__ or __KEY_192__ or __KEY_256__.
+Keysize is either __KEY_128__ or __KEY_256__.
 
 ```C
 void aes( uint32_t *input, 

@@ -13,7 +13,6 @@ typedef enum { ENCRYPT, DECRYPT } aes_mode_t;
 
 typedef enum {
     KEY_128,
-    KEY_192,
     KEY_256
 } key_size_t;
 
