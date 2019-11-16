@@ -34,3 +34,48 @@ md5 testfile.dat
 md5 dec_openssl.aes128
 md5 dec_openssl.aes256
 
+RESULTS:
+AES Encrypt
+
+real	5m19.879s
+user	4m14.580s
+sys	1m3.749s
+AES Decrypt
+
+real	6m48.465s
+user	5m41.244s
+sys	1m5.168s
+OpenSSL AES128 Decrypt
+
+real	0m2.781s
+user	0m0.455s
+sys	0m2.038s
+OpenSSL AES256 Decrypt
+
+real	0m2.635s
+user	0m0.528s
+sys	0m1.933s
+MD5 (testfile.dat) = 16971df7b633d15cb67e30c50d956244
+MD5 (dec.aes128) = 16971df7b633d15cb67e30c50d956244
+MD5 (dec.aes256) = 16971df7b633d15cb67e30c50d956244
+MD5 (dec_openssl.aes128) = 16971df7b633d15cb67e30c50d956244
+MD5 (dec_openssl.aes256) = 16971df7b633d15cb67e30c50d956244
+OpenSSL AES Encrypt
+
+real	0m3.559s
+user	0m1.466s
+sys	0m1.922s
+OpenSSL AES Encrypt
+
+real	0m3.734s
+user	0m1.932s
+sys	0m1.736s
+AES Decrypt
+
+real	7m42.797s
+user	6m26.447s
+sys	1m12.974s
+MD5 (testfile.dat) = 16971df7b633d15cb67e30c50d956244
+MD5 (dec.aes128) = 16971df7b633d15cb67e30c50d956244
+MD5 (dec.aes256) = 16971df7b633d15cb67e30c50d956244
+
