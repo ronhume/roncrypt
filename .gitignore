@@ -1,5 +1,7 @@
 libdes.a
 des.o
+libaes.a
+aes.o
 fileio.o
 .DS_Store
 

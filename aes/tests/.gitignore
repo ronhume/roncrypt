@@ -1,0 +1,5 @@
+aes128_decrypt
+aes256_decrypt
+aes128_encrypt
+aes256_encrypt
+aes_mem
