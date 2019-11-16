@@ -21,7 +21,8 @@ void aes (uint32_t *input,
           size_t    length,
           uint32_t  key[],
           uint32_t  salt[4],
-          key_size_t keysize);
+          key_size_t keysize,
+          aes_mode_t mode);
 
 void aes_file( const char* const in,
                const char* const out,

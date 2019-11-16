@@ -421,6 +421,52 @@ static void aes_encrypt_block ( uint32_t input[4],
 }
 
 /* 
+ * AES decrypt one block
+ * Parameters: input - data input array
+ *             output - data output array
+ *             key - key material
+ *             keysize - key size enum
+ *
+ * Return: void
+ */
+static void aes_decrypt_block ( uint32_t input[4], 
+                         uint32_t output[4],
+                         uint32_t key[],
+                         key_size_t keysize )
+{
+    uint32_t state[4];
+    uint32_t subkeys[60];
+
+    transpose(input,state);
+    //print_array("TRANSPOSE", state);
+
+    size_t num_rounds = get_key_words(keysize) + 6;
+    //printf("[%lu] ROUNDS\n", num_rounds);
+
+    aes_key_schedule(key, subkeys, keysize);
+
+    xor_round_key(state, &subkeys[num_rounds<<2]);
+
+    for ( size_t round = num_rounds; round>1; round-- )
+    {
+        shiftrows(state, true);
+        //print_array("SHIFTROWS", state);
+        state_substitute(state, true);
+        //print_array("STATE-SUB", state);
+        xor_round_key(state,&(subkeys[(round-1)<<2]));
+        mixcolumns(state, true); 
+        //print_array("MIXCOLUMNS", state);
+    }
+    shiftrows(state, true);
+    //print_array("SHIFTROWS", state);
+    state_substitute(state, true);
+    //print_array("STATE-SUB", state);
+    xor_round_key(state,&(subkeys[0]));
+
+    transpose(state,output);
+}
+
+/* 
  * AES encrypt one block with salt.  This
  * method is to support CBC mode.
  * Parameters: input - input data array
@@ -447,6 +493,30 @@ static void aes_encrypt_block_cbc ( uint32_t input[4],
 }
 
 /* 
+ * AES decrypt one block with salt.  This
+ * method is to support CBC mode.
+ * Parameters: input - input data array
+ *             output - output data array
+ *             salt - iv for CBC
+ *             key - key material array
+ *             keysize - key size enum
+ *
+ * Return: void
+ */
+static void aes_decrypt_block_cbc ( uint32_t input[4], 
+                             uint32_t output[4],
+                             uint32_t salt[4],
+                             uint32_t key[],
+                             key_size_t keysize )
+{
+    aes_decrypt_block(input, output, key, keysize);
+    output[0] ^= salt[0];
+    output[1] ^= salt[1];
+    output[2] ^= salt[2];
+    output[3] ^= salt[3];
+}
+
+/* 
  * Do AES on a buffer
  * Parameters: input - data pointer
  *             output - output data pointer
@@ -454,6 +524,7 @@ static void aes_encrypt_block_cbc ( uint32_t input[4],
  *             key - key array
  *             salt - iv for CBC
  *             keysize - key size enum
+ *             mode - DECRYPT/ENCRYPT
  *
  * Return: void
  */
@@ -462,22 +533,39 @@ void aes (uint32_t *input,
           size_t    length,
           uint32_t  key[],
           uint32_t  salt[4],
-          key_size_t keysize)
+          key_size_t keysize, 
+          aes_mode_t mode)
 {    
     /* generate subkeys here? XXXX */
 
     for (size_t i = 0; i<length; i+=4)
     {
-        aes_encrypt_block_cbc(&(input[i]), 
-                              &(output[i]), 
-                                salt, 
-                                key, 
-                                keysize);
+        if ( mode == ENCRYPT )
+        {
+            aes_encrypt_block_cbc(&(input[i]), 
+                                  &(output[i]), 
+                                    salt, 
+                                    key, 
+                                    keysize);
 
-        salt[0] = output[i];
-        salt[1] = output[i+1];
-        salt[2] = output[i+2];
-        salt[3] = output[i+3];
+            salt[0] = output[i];
+            salt[1] = output[i+1];
+            salt[2] = output[i+2];
+            salt[3] = output[i+3];
+        }
+        else
+        {
+            aes_decrypt_block_cbc(&(input[i]), 
+                                  &(output[i]), 
+                                    salt, 
+                                    key, 
+                                    keysize);
+
+            salt[0] = input[i];
+            salt[1] = input[i+1];
+            salt[2] = input[i+2];
+            salt[3] = input[i+3];
+        }
     }
 }
 
@@ -539,9 +627,9 @@ void aes_file( const char* const in,
 
     while(aes_readblock(infile, input)>0)
     {
-        aes_encrypt_block_cbc(input,output, salt, key, keysize);
         if ( mode == ENCRYPT )
         {
+            aes_encrypt_block_cbc(input,output, salt, key, keysize);
             salt[0] = output[0];
             salt[1] = output[1];
             salt[2] = output[2];
@@ -549,6 +637,7 @@ void aes_file( const char* const in,
         }
         else
         {
+            aes_decrypt_block_cbc(input,output, salt, key, keysize);
             salt[0] = input[0];
             salt[1] = input[1];
             salt[2] = input[2];
@@ -570,7 +659,13 @@ void aes_file( const char* const in,
 
     if ( mode == DECRYPT )
     {
-        /* TODO:XXXX */
+        fflush(out_fp);
+        closefile_buffered(out_fp, (void**)&bufptr);
+
+        /* remove padding */
+        size_t how_much = (size_t)(output[3] & 0x000000FFUL);
+        size_t newsize = filesize-how_much;
+        truncate(out, newsize);
     }
     else
     {

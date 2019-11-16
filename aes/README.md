@@ -46,7 +46,8 @@ void aes( uint32_t *input,
           size_t  length,
           uint32_t key[],
           uint32_t salt[4],
-          key_size_t keysize );
+          key_size_t keysize
+          aes_mode_t mode );
 ```
 Performs AES operation on an input memory buffer of length __length__, and puts result in output buffer, using key and salt for encryption.  Salt allows support of CBC mode.
 ```C
