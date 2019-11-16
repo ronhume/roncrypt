@@ -1,6 +1,6 @@
 .phony: all clean
 
-TARGETS= aes_encrypt aes_decrypt aes_mem
+TARGETS= aes128_encrypt aes256_encrypt aes_decrypt aes_mem
 
 all: $(TARGETS)
 
@@ -12,8 +12,11 @@ AESLIB=-laes
 aes_mem: aes_mem.c
 	gcc -o aes_mem $(OPTIONS) $(INCDIRS) $(LIBDIR) $(AESLIB) aes_mem.c
 
-aes_encrypt: aes_encrypt.c
-	gcc -o aes_encrypt $(OPTIONS) $(INCDIRS) $(LIBDIR) $(AESLIB) aes_encrypt.c
+aes128_encrypt: aes128_encrypt.c
+	gcc -o aes128_encrypt $(OPTIONS) $(INCDIRS) $(LIBDIR) $(AESLIB) aes128_encrypt.c
+
+aes256_encrypt: aes256_encrypt.c
+	gcc -o aes256_encrypt $(OPTIONS) $(INCDIRS) $(LIBDIR) $(AESLIB) aes256_encrypt.c
 
 aes_decrypt: aes_decrypt.c
 	gcc -o aes_decrypt $(OPTIONS) $(INCDIRS) $(LIBDIR) $(AESLIB) aes_decrypt.c
