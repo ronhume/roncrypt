@@ -1,4 +1,5 @@
 # AES implemention
+Completely naive implementation of AES, not to be used for anything.  I wrote this solely as an exercise in understanding.  Real implementations would use T-BOXes or some variant of them.
 ## AES Library
 ### API Reference
 #### FileIO APIs
