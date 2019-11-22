@@ -4,5 +4,5 @@ Is in 3DES directory
 ## AES Library
 Is in AES directory
 
-I did this for learning purposes so shouldn't be used for anything real.
+I did this for learning purposes so it shouldn't be used for anything real.
 
