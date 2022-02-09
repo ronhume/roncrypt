@@ -1,5 +1,5 @@
 # Triple DES implemention
-Completelyt naive implementation if DES and 3DES for learing purposes only.
+Completely naive implementation of DES and 3DES for learing purposes only.
 ## DES and 3DES Library
 ### API Reference
 #### FileIO APIs
